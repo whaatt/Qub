@@ -864,6 +864,8 @@ class QubApplication extends Application
 		$clientNick = $this->_nicknames[$clientID];
 		$clientLoc = $this->_locations[$clientID];
 		
+		$gameNumber = intval(substr($clientLoc,5,strlen($clientLoc)-5));
+		
 		if ($this->_locations[$clientID] == 'main')
 		{
 			$client->send($this->_encodeData('notice', 'This command does not apply here.<br>'));
@@ -876,7 +878,6 @@ class QubApplication extends Application
 			return false;
 		}
 		
-		$gameNumber = intval(substr($clientLoc,5,strlen($clientLoc)-5));
 		$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
 		$this->_games[$gameNumber]['state']['runTime'] = time();
 		
