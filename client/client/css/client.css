@@ -1,0 +1,131 @@
+body {
+	background: #000;
+	padding-top: 6%;
+	padding-bottom: 6%;
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	font-size: 16px;
+	line-height: 25px;
+	color: #444;
+}
+
+a,
+a:hover { 
+	color: #169;
+}
+
+p {
+	margin: 0;
+	padding: 0 0 21px 0; 
+}
+
+#scroll {
+	border: 1px solid #555;
+	padding: 3px;
+}
+
+#scroll2 {
+	border: 1px solid #555;
+	padding: 3px;
+	display: none;
+}
+
+#container {
+	text-align: left;
+	width: 580px;
+	background: #000;
+	position: relative;
+	margin: 0 auto;
+	padding: 40px;
+	border: 1px solid #333;
+	border-radius: 10px;
+}
+
+h1 {
+	font-size: 30px;
+	color: #CB86FF;
+	font-weight: normal;
+	margin: 0 0 20px 0;
+	padding: 0;
+	display: inline-block;
+}
+h2 {
+	font-size: 16px;
+	font-weight: bold;
+	margin: 8px 0 0 0;
+}
+
+#log {
+	margin: 5px;
+	overflow: auto;
+	color: #00AF00;
+}
+
+#qs {
+	margin: 6px 0 0 0;
+	overflow: auto;
+	color: #00AF00;
+	margin: 5px;
+}
+
+hr {
+   display: block;
+   position: relative;
+   padding: 0;
+   margin: 8px auto;
+   height: 0;
+   width: 100%;
+   max-height: 0;
+   font-size: 1px;
+   line-height: 0;
+   clear: both;
+   border: none;
+   border-top: 1px solid #111;
+   border-bottom: 1px solid #111;
+}
+
+#send {
+	width: 18%;
+}
+
+#status {
+	float: right;
+	padding: 0 10px;
+	border-radius: 5px;
+}
+.offline {
+	background: #B00;
+	color: #fff;
+}
+.online {
+	background: #093;
+	color: #fff;
+}
+.error {
+	background: #B00;
+	color: #fff;
+}
+.connecting {
+	background: #A40;
+	color: #fff;
+}
+
+#prompt,
+#data {
+	display: inline-block;
+	width: 100%;
+	margin: 0 0 5px 0;
+	background: #000;
+	border: 1px solid #555;
+	color: #00AF00;
+}
+#file {
+	display: inline-block;
+	width: 410px;
+	margin: 0 0 5px 0;
+}
+
+.bold {
+	font-weight: bold;
+}
