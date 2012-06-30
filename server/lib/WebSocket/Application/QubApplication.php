@@ -872,7 +872,7 @@ class QubApplication extends Application
 		
 		if (!isset($this->_games[$gameNumber]['state']['inQuestion']) or !$this->_games[$gameNumber]['state']['inQuestion'])
 		{
-			$client->send($this->_encodeData('notice', 'This command does not apply here.<br>'));
+			$client->send($this->_encodeData('notice', 'This command does not apply now.<br>'));
 			return false;
 		}
 		
