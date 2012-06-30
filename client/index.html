@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<link rel="stylesheet" href="client/css/client.css">
+	<link rel="stylesheet" href="client/css/scrollbar.css">
+	<link rel="shortcut icon" href="favicon.ico" />
+	
+    <script src="client/js/jquery.js"></script>
+	<script src="client/js/json.js"></script>
+	<script src="client/js/ui.js"></script>
+	
+	<script src="client/js/mousewheel.js"></script>
+	<script src="client/js/scrollbar.js"></script>
+	<script src="client/js/websocket.js"></script>
+	
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="Description" content="Play Quiz Bowl with your friends. It's fun."/>
+	
+	<title>Qub</title>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Qub: Multiplayer Quiz Bowl</h1>
+		<span id="status" class="offline">offline</span>
+		
+		<br><div id="scroll"><div id="log"></div></div>
+		<div id="scroll2"><div id="qs"></div></div><br>
+		
+		<form id="command" action="javascript: noSubmit();">
+			<input id="prompt" type="text" autocomplete="off">
+		</form>
+    </div>
+</body>
+</html>​
