@@ -866,7 +866,13 @@ class QubApplication extends Application
 		
 		if ($this->_locations[$clientID] == 'main')
 		{
-			$client->send($this->_encodeData('notice', 'This command does not apply here.'));
+			$client->send($this->_encodeData('notice', 'This command does not apply here.<br>'));
+			return false;
+		}
+		
+		if (!isset($this->_games[$gameNumber]['state']['inQuestion']) or !$this->_games[$gameNumber]['state']['inQuestion'])
+		{
+			$client->send($this->_encodeData('notice', 'This command does not apply here.<br>'));
 			return false;
 		}
 		
