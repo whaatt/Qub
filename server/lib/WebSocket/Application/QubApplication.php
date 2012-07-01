@@ -26,6 +26,11 @@ class QubApplication extends Application
 	{
 		$id = $client->getClientId();
 		
+		if (!isset($this->_nicknames[$id]) or !isset($this->_clients[$id]) or !isset($this->_locations[$id]))
+		{
+			return false;
+		}
+		
 		if ($this->_locations[$id] != 'main')
 		{
 			$this->_actionLeave('', $client);
