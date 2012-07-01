@@ -28,7 +28,7 @@ class QubApplication extends Application
 		
 		if (!isset($this->_nicknames[$id]) or !isset($this->_clients[$id]) or !isset($this->_locations[$id]))
 		{
-			return false;
+			return true;
 		}
 		
 		if ($this->_locations[$id] != 'main')
