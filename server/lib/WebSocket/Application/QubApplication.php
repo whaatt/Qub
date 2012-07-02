@@ -245,14 +245,14 @@ class QubApplication extends Application
 		{
 			$list = 'Type \'join [number]\' to enter a particular game room.<br><br>';
 			
-			for($i = 0; $i < count($this->_games); $i++)
+			foreach ($this->_games as $key => $value)
 			{
 				$list = $list . 'Game Room #' . strval($i+1);
 				
-				$list = $list . ' - ' . ucfirst(strval($this->_games[$i]['parameters']['type']));
-				$list = $list . ' - ' . ucfirst(strval($this->_games[$i]['parameters']['length']));
-				$list = $list . ' - ' . ucfirst(strval($this->_games[$i]['parameters']['level']));
-				$list = $list . ' - ' . ucfirst(strval($this->_games[$i]['parameters']['style']));
+				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['type']));
+				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['length']));
+				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['level']));
+				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['style']));
 				
 				$list = $list . '<br>';
 			}
