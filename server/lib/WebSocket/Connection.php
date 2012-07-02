@@ -45,11 +45,18 @@ class Connection
 		// check for valid http-header:
         if(!preg_match('/\AGET (\S+) HTTP\/1.1\z/', $lines[0], $matches))
 		{
-            $this->log('Invalid request: ' . $lines[0]);
-			$this->sendHttpResponse(400);
-            stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
-            return false;
-        }                
+			/*if (preg_match("/policy-file-request/i",$lines[0]))
+			{
+				$this->send('<?xml version="1.0"?><cross-domain-policy><site-control permitted-cross-domain-policies="all"/><allow-access-from domain="*" to-ports="*" /></cross-domain-policy>');
+			}*/
+			#else
+			#{
+				$this->log('Invalid request: ' . $lines[0]);
+				$this->sendHttpResponse(400);
+				stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+				return false;
+			#}
+		}                
 		
 		// check for valid application:
 		$path = $matches[1];
@@ -237,7 +244,7 @@ class Connection
 				$this->send($decodedData['payload'], 'pong', false);
 				$this->log('Ping? Pong!');
 			break;
-		
+
 			case 'pong':
 				// server currently not sending pings, so no pong should be received.
 			break;
