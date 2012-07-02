@@ -247,7 +247,7 @@ class QubApplication extends Application
 			
 			foreach ($this->_games as $key => $value)
 			{
-				$list = $list . 'Game Room #' . strval($i+1);
+				$list = $list . 'Game Room #' . strval(intval($key)+1);
 				
 				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['type']));
 				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['length']));
