@@ -242,6 +242,8 @@ $(document).ready(function() {
 	});
 });
 
+WEB_SOCKET_SWF_LOCATION = "client/swf/WebSocketMain.swf";
+
 var initialized = false;
 var reClick = false;
 var hasBuzzed = false;

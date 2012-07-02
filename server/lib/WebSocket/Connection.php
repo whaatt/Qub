@@ -70,6 +70,10 @@ class Connection
             $line = chop($line);
             if(preg_match('/\A(\S+): (.*)\z/', $line, $matches))
 			{
+				#if ($matches[1] == 'sec-websocket-version') { $matches[1] = 'Sec-WebSocket-Version'; }
+				#else if ($matches[1] == 'sec-websocket-key') { $matches[1] = 'Sec-WebSocket-Key'; }
+				#else if (ctype_lower($matches[1])) { $matches[1] = ucfirst($matches[1]); }
+				
                 $headers[$matches[1]] = $matches[2];
             }
         }
