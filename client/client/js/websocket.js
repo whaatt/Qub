@@ -16,7 +16,7 @@ function postProcess(){
 function read(words){
 	var startPos = wordsPos;
 	
-	if (wordsPos < words.length && !hasBuzzed){
+	if (wordsPos < words.length && !hasBuzzed && !hasLeft){
 		$('#scroll').hide()
 		$('#scroll2').show()
 		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
@@ -157,7 +157,9 @@ function handle(response) {
 			setTimeout(switchScreen, 5000);
 			break;
 		case 'leave':
-			$('#log').html('')
+			hasLeft = true;
+			postProcess();
+			$('#log').html('');
 			break;
 		case 'wrong':
 			postProcess();
@@ -172,7 +174,7 @@ function handle(response) {
 			log(response.data, '#00CC66', false);
 			break;
 		case 'question':
-			hasBuzzed = false; wordsPos = 0;
+			hasBuzzed = false; hasLeft = false; wordsPos = 0;
 			lastQuestion = response.data;
 			var words = response.data.split(' ');
 			read(words);
@@ -247,6 +249,7 @@ $(document).ready(function() {
 var initialized = false;
 var reClick = false;
 var hasBuzzed = false;
+var hasLeft = false;
 
 var noSubmit = function(){}
 var wordsPos = 0;
