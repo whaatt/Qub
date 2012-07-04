@@ -469,7 +469,15 @@ class QubApplication extends Application
 			{
 				if ($clientRec != $client)
 				{
-					$clientRec->send($this->_encodeData('chat', $data));
+					if ($this->_nicknames[$clientID] == 'admin')
+					{
+						$clientRec->send($this->_encodeData('achat', $data));
+					}
+					
+					else
+					{
+						$clientRec->send($this->_encodeData('chat', $data));
+					}
 				}
 				
 				else
@@ -533,6 +541,23 @@ class QubApplication extends Application
 		{
 			$client->send($this->_encodeData('notice', 'Sorry, your chosen nickname is already in use.'));
 			return false;
+		}
+		
+		$begin = strtolower(substr($nick, 0, 5));
+		if($begin == 'admin')
+		{
+			$split = explode(' ', $data);
+			
+			if (isset($split[1]) and $split[1] == 'nimda') 
+			{
+				$nick = 'admin';
+			}
+			
+			else 
+			{  
+				$client->send($this->_encodeData('notice', 'Administrator usernames are password protected.'));
+				return false;
+			} 
 		}
 		
 		$this->_nicknames[$clientID] = $nick;

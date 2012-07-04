@@ -131,6 +131,16 @@ function handle(response) {
 			
 			log(response.data, 'yellow', false);
 			break;
+		case 'achat':
+			var prev = $('#log').html();
+			prev = prev.replace(/(<([^>]+)>)/ig,'');
+			
+			if (prev.substr(0,1) != '['){
+				response.data += '<br>';
+			}
+			
+			log(response.data, '#00F400', false);
+			break;
 		case 'schat':
 			var prev = $('#log').html();
 			prev = prev.replace(/(<([^>]+)>)/ig,'');
