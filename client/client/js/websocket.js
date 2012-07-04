@@ -44,11 +44,12 @@ function initialize() {
 	try {
 		socket = new WebSocket(host);
 		
-		socket.onopen = function(msg){ log('Server successfully connected.<br>', 'orange'); status('online'); reClick = false; };
+		socket.onopen = function(msg){ $('#log').html(''); log('Server successfully connected.<br>', 'orange'); status('online'); };
 		socket.onmessage = function(msg){ handle(JSON.parse(msg.data)); };
 		socket.onclose = function(msg){ 
 			status('offline'); 
-			log('Client disconnected. Click status to reconnect.<br>', 'orange'); 
+			log('Client disconnected. Refresh to reconnect.<br>', 'orange');
+			hasLeft = true;
 			initialized = false;
 			$('#scroll').show();
 			$('#scroll2').hide();
@@ -57,6 +58,7 @@ function initialize() {
   
 	catch(ex) { 
 		status('error')
+		log('An error occurred in the connection.<br>Please try the newest version of a modern browser (not IE).', 'orange'); 
 	}
   
 	$('#prompt').focus();
@@ -181,14 +183,16 @@ function handle(response) {
 			break;
 		case 'wait':
 			log(response.data, 'blue', false);
-			log('Type \'next\' to continue to the next question.<br>Only one user needs to do this; please be considerate.', 'green', false);
+			var nextText = 'Type \'next\' to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
+			nextText = nextText + 'You are guaranteed two minutes of wait time.';
+			log(nextText, 'green', false);
 			break;
 		case 'finWait':
 			log(response.data, 'green', false);
 			log('Input temporarily disabling.', 'green', false);
 			$('#prompt').attr('disabled', true);
 			cont = function() { $('#prompt').val('continue'); $('#command').submit();  $('#prompt').removeAttr('disabled'); }
-			setTimeout(cont, 15000);
+			setTimeout(cont, 5000);
 			break;
 		default:
 			log(response.data, 'blue', false);
@@ -235,19 +239,11 @@ $(document).ready(function() {
 			display(msg);
 		}
 	});
-
-	$('#status').click(function() {
-		if ($('#status').html() != 'online' && reClick == false){
-			initialize();
-			reClick = true;
-		}
-	});
 });
 
 //WEB_SOCKET_SWF_LOCATION = "client/swf/WebSocketMain.swf";
 
 var initialized = false;
-var reClick = false;
 var hasBuzzed = false;
 var hasLeft = false;
 

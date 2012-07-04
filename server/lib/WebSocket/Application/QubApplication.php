@@ -284,7 +284,22 @@ class QubApplication extends Application
 		
 		$toUs = array_search($clientID, $this->_games[$currentLoc]['users']);
 		array_splice($this->_games[$currentLoc]['users'], $toUs, 1);
-		array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.<br>');
+		
+		if (!isset($this->_games[$currentLoc]['state']['position']))
+		{
+			$usersID = array_keys($this->_locations, 'game-' . strval($currentLoc));
+		
+			foreach ($usersID as $clientsID)
+			{
+				$notItem = 'User ' . $clientNick . ' has left the room.<br>';
+				$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem));
+			}
+		}
+		
+		else
+		{
+			array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.<br>');
+		}
 		
 		if (count($this->_games[$currentLoc]['users']) == 0)
 		{
@@ -321,20 +336,17 @@ class QubApplication extends Application
 			return false;
 		}
 		
-		$gameNumber = intval(substr($this->_locations[$clientID],5,strlen($this->_locations[$clientID])-5));
-		
-		if (count($this->_games[$gameNumber]['users']) > 10)
+		if (count($this->_games[intval($data[0])-1]['users']) > 10)
 		{
 			$client->send($this->_encodeData('notice', 'You must join a game with fewer than ten people.'));
 			return false;
 		}
 		
-		if (!isset($this->_games[$gameNumber]['state']['inQuestion']) or !$this->_games[$gameNumber]['state']['inQuestion'])
+		if (!isset($this->_games[intval($data[0])-1]['state']['position']))
 		{
 			array_push($this->_games[intval($data[0])-1]['users'], $clientID);
 			$this->_locations[$clientID] = 'game-' . strval(intval($data[0])-1);
 			$usersID = array_keys($this->_locations, 'game-' . strval(intval($data[0])-1));
-		
 			
 			$client->send($this->_encodeData('change', ''));
 			$this->_actionHeaders('', $client);
@@ -343,17 +355,32 @@ class QubApplication extends Application
 			{
 				$this->_clients[$clientsID]->send($this->_encodeData('notice', 'User ' . $clientNick . ' has entered the room.<br>'));
 			}
-			
 		}
 		
 		else
-		{
-			$busy = 'The game is currently in the middle of a question.<br>';
-			$busy = $busy . 'When ready, you will be redirected automatically.<br>';
-			$busy = $busy . 'If the game seems stalled, please retry joining in a few moments.<br>';
+		{			
+			$timeLeft = $this->_gamePing(intval($data[0])-1);
+			
+			if (isset($timeLeft[0]) and $timeLeft[0] == 0)
+			{
+				$busy = 'The game is currently waiting for a question.<br>';
+				$busy = $busy . 'When ready, you will be redirected automatically.<br><br>';
+				$busy = $busy . 'If the game seems stalled, please retry joining in ' . strval($timeLeft[1]) . ' seconds.<br>';
+				$busy = $busy . 'There will still be read time after that, but this will serve as a pinging tool.<br>';
+			}
+			
+			else if (isset($timeLeft[0]) and $timeLeft[0] == 1)
+			{
+				$busy = 'The game is currently in the middle of a question.<br>';
+				$busy = $busy . 'When ready, you will be redirected automatically.<br>';
+				$busy = $busy . 'If the game seems hung, please retry joining in ' . strval($timeLeft[1]) . ' seconds.<br>';
+			}
+			
+			else{
+				return true;
+			}
 			
 			$client->send($this->_encodeData('notice', $busy));
-			$this->_gamePing($gameNumber);
 			
 			if(!in_array(array($clientID, 'User ' . $clientNick . ' has entered the room.<br>'), $this->_games[intval($data[0])-1]['equeue']))
 			{
@@ -568,7 +595,7 @@ class QubApplication extends Application
 			return false;
 		}
 		
-		if (time() - $this->_games[$gameNumber]['state']['runTime'] >= 15 and $this->_games[$gameNumber]['state']['isNexted'])
+		if (time() - $this->_games[$gameNumber]['state']['runTime'] >= 5 and $this->_games[$gameNumber]['state']['isNexted'])
 		{
 			if (!in_array($clientID, $this->_games[$gameNumber]['state']['continues']))
 			{
@@ -870,6 +897,34 @@ class QubApplication extends Application
 			if (($now - $time) > ceil($readTime))
 			{
 				$this->_gameSkip($gameNumber);
+				return true;
+			}
+			
+			$estJoin = ceil($readTime) - ($now - $time) + 1;
+			return array(1, ceil($estJoin));
+		}
+		
+		else if (isset($this->_games[$gameNumber]['state']['isNexted']) and !$this->_games[$gameNumber]['state']['isNexted'])
+		{
+			$now = time();
+			$time = $this->_games[$gameNumber]['state']['startTime'];
+			
+			if(($now - $time) > 120)
+			{
+				$this->_gameNext($gameNumber);
+				return $this->_gamePing($gameNumber);
+			}
+			
+			$estJoin = 120 - ($now - $time) + 1;
+			return array(0, ceil($estJoin));
+		}
+		
+		else if (isset($this->_games[$gameNumber]['state']['isNexted']))
+		{
+			if ($this->_games[$gameNumber]['state']['isNexted'] and !$this->_games[$gameNumber]['state']['isReading'])
+			{
+				$estJoin = 120*.350 + 20 + (time() - $this->_games[$gameNumber]['state']['runTime']);
+				return array(1, ceil($estJoin));
 			}
 		}
 		
@@ -883,7 +938,7 @@ class QubApplication extends Application
 
 		foreach ($this->_games[$gameNumber]['equeue'] as $entUser)
 		{
-			if (isset($this->_clients[$entUser[0]]))
+			if (isset($this->_clients[$entUser[0]]) and $this->_locations[$entUser[0]] == 'main')
 			{
 				array_push($this->_games[$gameNumber]['users'], $entUser[0]);
 				$this->_locations[$entUser[0]] = 'game-' . strval($gameNumber);
@@ -908,6 +963,7 @@ class QubApplication extends Application
 		}
 		
 		$this->_games[$gameNumber]['state']['runTime'] = 0;
+		$this->_games[$gameNumber]['state']['startTime'] = time();
 		$this->_games[$gameNumber]['state']['inQuestion'] = true;
 		$this->_games[$gameNumber]['state']['isReading'] = false;
 		$this->_games[$gameNumber]['state']['isTaken'] = false;
@@ -965,7 +1021,23 @@ class QubApplication extends Application
 		
 		foreach ($usersID as $clientsID)
 		{
-			$notification = 'Question #' . strval($this->_games[$gameNumber]['state']['position']) . ' will start in 15 seconds.<br>';
+			$notification = 'Question #' . strval($this->_games[$gameNumber]['state']['position']) . ' will start in 5 seconds.<br>';
+			$this->_clients[$clientsID]->send($this->_encodeData('finWait', $notification));
+		}
+		
+		return true;
+	}
+	
+	private function _gameNext($gameNumber)
+	{
+		$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+		$this->_games[$gameNumber]['state']['runTime'] = time();
+		$this->_games[$gameNumber]['state']['isNexted'] = true;
+		
+		foreach ($usersID as $clientsID)
+		{
+			$notification = 'Question #' . strval($this->_games[$gameNumber]['state']['position']) . ' will start in 5 seconds.<br><br>';
+			$notification = $notification . 'A waiting user has auto-nexted this!<br>';
 			$this->_clients[$clientsID]->send($this->_encodeData('finWait', $notification));
 		}
 		
