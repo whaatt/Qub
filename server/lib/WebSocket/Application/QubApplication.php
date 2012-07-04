@@ -26,13 +26,29 @@ class QubApplication extends Application
 	{
 		$id = $client->getClientId();
 		
-		if (!isset($this->_nicknames[$id]) or !isset($this->_clients[$id]) or !isset($this->_locations[$id]))
+		if (!isset($this->_nicknames[$id]) and !isset($this->_clients[$id]) and !isset($this->_locations[$id]))
 		{
 			return true;
 		}
 		
+		$clientLoc = $this->_locations[$id];
+		$gameNumber = intval(substr($clientLoc,5,strlen($clientLoc)-5));
+		
 		if ($this->_locations[$id] != 'main')
 		{
+			if ($this->_games[$gameNumber]['state']['buzzer'] = $this->_nicknames[$id])
+			{
+				$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+				
+				foreach ($usersID as $clientsID)
+				{
+					if ($clientsID != $id)
+					{
+						$this->_clients[$clientsID]->send($this->_encodeData('read', ''));
+					}
+				}
+			}
+			
 			$this->_actionLeave('', $client);
 		}
 		
@@ -52,7 +68,9 @@ class QubApplication extends Application
 		$actionNameWO = strtolower(($decodedData['action']));
 		$clientID = $client->getClientId();
 		
-		if (strlen(implode(' ', $decodedData['data'])) > 300 or strlen($actionName) > 20){
+		$decodedData = implode(' ', $decodedData['data']);
+		
+		if (strlen($decodedData) > 300 or strlen($actionName) > 20){
 			$client->send($this->_encodeData('notice', 'One or more parts of your command were too long.<br>'));
 			return false;
 		}
@@ -65,7 +83,7 @@ class QubApplication extends Application
 		
 		if(method_exists($this, $actionName))
 		{			
-			call_user_func(array($this, $actionName), implode(' ', $decodedData['data']), $client);
+			call_user_func(array($this, $actionName), $decodedData, $client);
 		}
 		
 		else
@@ -288,11 +306,14 @@ class QubApplication extends Application
 		if (!isset($this->_games[$currentLoc]['state']['position']))
 		{
 			$usersID = array_keys($this->_locations, 'game-' . strval($currentLoc));
-		
+			$notItem = 'User ' . $clientNick . ' has left the room.<br>';
+				
 			foreach ($usersID as $clientsID)
 			{
-				$notItem = 'User ' . $clientNick . ' has left the room.<br>';
-				$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem));
+				if ($clientsID != $clientID)
+				{
+					$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem));
+				}
 			}
 		}
 		
@@ -381,8 +402,19 @@ class QubApplication extends Application
 			}
 			
 			$client->send($this->_encodeData('notice', $busy));
+			$isIn = false;
 			
-			if(!in_array(array($clientID, 'User ' . $clientNick . ' has entered the room.<br>'), $this->_games[intval($data[0])-1]['equeue']))
+			foreach ($this->_games[intval($data[0])-1]['equeue'] as $key => $entry)
+			{
+				if ($entry[0] == $clientID)
+				{
+					$this->_games[intval($data[0])-1]['equeue'][$key] = array($clientID, 'User ' . $clientNick . ' has entered the room.<br>');
+				}
+				
+				$isIn = true;
+			}
+			
+			if(!$isIn)
 			{
 				array_push($this->_games[intval($data[0])-1]['equeue'], array($clientID, 'User ' . $clientNick . ' has entered the room.<br>'));
 			}
@@ -413,7 +445,9 @@ class QubApplication extends Application
 		
 		if ($this->_locations[$clientID] == 'main')
 		{
-			$headers = 'Welcome to Qub.<br><br>Type \'help\' for help.<br>Type \'headers\' to see these messages again.';
+			$headers = 'Welcome to Qub.<br><br>This is important -- gameplay has changed.<br>';
+			$headers = $headers . 'Now you buzz in first, then get a chance to answer.<br><br>';
+			$headers = $headers . 'Type \'help\' for help.<br>Type \'headers\' to see these messages again.';
 			$headers = $headers . '<br><br>Today is ' . date('F j, Y') . ', and the time is ' . date('g:i a') . '.';
 			
 			if (count($this->_clients) == 1)
@@ -681,12 +715,52 @@ class QubApplication extends Application
 		
 		$gameNumber = intval(substr($clientLoc,5,strlen($clientLoc)-5));
 	
-		if(!isset($this->_games[$gameNumber]['state']['continues']) or !$this->_games[$gameNumber]['state']['isReading'])
+		if(!$this->_games[$gameNumber]['state']['isReading'])
 		{
 			$client->send($this->_encodeData('notice', 'This command does not apply now.<br>'));
 			return false;
 		}
 		
+		$this->_games[$gameNumber]['state']['buzzer'] = $clientID;
+		$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+		
+		foreach ($usersID as $clientsID)
+		{
+			if ($clientsID != $clientID)
+			{
+				$this->_clients[$clientsID]->send($this->_encodeData('buzz', $this->_nicknames[$clientID]));
+			}
+			
+			else
+			{
+				$this->_clients[$clientsID]->send($this->_encodeData('sbuzz', ''));
+			}
+		}
+	
+	}
+	
+	private function _actionAnswer($data, $client)
+	{
+		$clientID = $client->getClientId();
+		$clientNick = $this->_nicknames[$clientID];
+		$clientLoc = $this->_locations[$clientID];
+		
+		if ($this->_locations[$clientID] == 'main')
+		{
+			$client->send($this->_encodeData('notice', 'This command does not apply here.<br>'));
+			return false;
+		}
+		
+		$gameNumber = intval(substr($clientLoc,5,strlen($clientLoc)-5));
+	
+		if(!$this->_games[$gameNumber]['state']['isReading'] or empty($this->_games[$gameNumber]['state']['buzzer']))
+		{
+			$client->send($this->_encodeData('notice', 'This command does not apply now.<br>'));
+			return false;
+		}
+		
+		$this->_games[$gameNumber]['state']['buzzer'] = null;
+
 		$data = explode(' ', $data);
 		$score = array_pop($data);
 		
@@ -756,7 +830,7 @@ class QubApplication extends Application
 			$wrong = $wrong . 'If the game does not continue within a minute or so, type \'ping\'.<br>';
 			$client->send($this->_encodeData('wrong', $wrong));
 			
-			if(count($this->_games[$gameNumber]['state']['negs']) == count($this->_games[$gameNumber]['users']))
+			if(count($this->_games[$gameNumber]['state']['negs']) >= count($this->_games[$gameNumber]['users']))
 			{
 				$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));						
 				$isTaken = $this->_games[$gameNumber]['state']['isTaken'];
@@ -785,6 +859,18 @@ class QubApplication extends Application
 				
 				$this->_games[$gameNumber]['state']['inQuestion'] = false;
 				$this->_gameRun($gameNumber);
+			}
+			
+			else
+			{
+				$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+				foreach ($usersID as $clientsID)
+				{
+					if ($clientsID != $clientID)
+					{
+						$this->_clients[$clientsID]->send($this->_encodeData('read', ''));
+					}
+				}
 			}
 		}
 		
@@ -995,6 +1081,7 @@ class QubApplication extends Application
 		$this->_games[$gameNumber]['state']['isNexted'] = false;
 		$this->_games[$gameNumber]['state']['answer'] = null;
 		$this->_games[$gameNumber]['state']['question'] = null;
+		$this->_games[$gameNumber]['state']['buzzer'] = null;
 		$this->_games[$gameNumber]['state']['continues'] = array();
 		$this->_games[$gameNumber]['state']['negs'] = array();
 		$this->_games[$gameNumber]['state']['correct'] = array();
@@ -1090,7 +1177,7 @@ class QubApplication extends Application
 		
 		$help = $help . 'To play in a game: After you have entered a game room, a game may or may not be in progress. If a ';
 		$help = $help . 'question does not appear shortly, type \'start\' to try starting the game. Once questions begin to ';
-		$help = $help . 'appear, you may type \'buzz\' followed by your answer. The game interface will guide you through this.<br><br>';
+		$help = $help . 'appear, you may type \'buzz\' to buzz in, and then your answer. You will be guided through this.<br><br>';
 		
 		$help = $help . 'To chat and get information: Chatting to everybody in the main lobby or game rooms is as simple as ';
 		$help = $help . 'typing \'chat\' followed by your message. To private message (PM) someone, type \'pm\' followed by ';

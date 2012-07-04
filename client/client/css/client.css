@@ -31,6 +31,10 @@ p {
 	display: none;
 }
 
+#command2 {
+	display: none;
+}
+
 #container {
 	text-align: left;
 	width: 580px;
@@ -120,6 +124,16 @@ hr {
 	border: 1px solid #555;
 	color: #00AF00;
 }
+
+#as{
+	display: inline-block;
+	width: 100%;
+	margin: 0 0 5px 0;
+	background: #000;
+	border: 1px solid #555;
+	color: #00AF00;
+}
+
 #file {
 	display: inline-block;
 	width: 410px;

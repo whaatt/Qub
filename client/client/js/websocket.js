@@ -108,6 +108,8 @@ function display(message) {
 			break;
 		case 'buzz':
 			break;
+		case 'answer':
+			break;
 		default:
 			var data = message.data
 			if (data != '') { log('Command: ' + message.action + ' ' + data.join(' ') + '<br>', 'green', true); }
@@ -175,10 +177,14 @@ function handle(response) {
 			break;
 		case 'wrong':
 			postProcess();
+			hasAnswered = true;
 			log(response.data, 'blue', false);
+			$('#prompt').focus();
 			break;
 		case 'display':
 			postProcess();
+			$('#prompt').removeAttr('disabled');
+			hasAnswered = true;
 			hasBuzzed = true;
 			log(lastQuestion + '<br>', 'purple', false);
 			break;
@@ -186,10 +192,28 @@ function handle(response) {
 			log(response.data, '#00CC66', false);
 			break;
 		case 'question':
-			hasBuzzed = false; hasLeft = false; wordsPos = 0;
+			hasBuzzed = false; hasLeft = false; hasAnswered = false; 
+			wordsPos = 0;
 			lastQuestion = response.data;
-			var words = response.data.split(' ');
+			words = response.data.split(' ');
 			read(words);
+			break;
+		case 'read':
+			hasBuzzed = false;
+			$('#buzz').remove();
+			$('#prompt').removeAttr('disabled');
+			read(words);
+			break;
+		case 'buzz':
+			hasBuzzed = true;
+			$('#qs').append('<span id=\'buzz\' style=\'color: yellow;\'>Buzz!! </span>');
+			$('#prompt').attr('disabled', true);
+			break;
+		case 'sbuzz':
+			hasBuzzed = true;
+			$('#qs').append('<span style=\'color: yellow;\'>Buzz!! </span>'); isAnswering = true;
+			function timeOut() { if (hasAnswered == false) { $('#prompt').val('answer'); $('#command').submit(); } }
+			setTimeout(timeOut, 5000);
 			break;
 		case 'wait':
 			log(response.data, 'blue', false);
@@ -238,7 +262,15 @@ $(document).ready(function() {
 			if (action == 'buzz')
 			{
 				hasBuzzed = true;
+			}
+			
+			if (isAnswering)
+			{
+				action = 'answer';
+				data = typed;
+				data = data.split(' ');
 				data.push(wordsPos.toString());
+				isAnswering = false;
 			}
 			
 			msg.data = data;
@@ -251,13 +283,16 @@ $(document).ready(function() {
 	});
 });
 
-//WEB_SOCKET_SWF_LOCATION = "client/swf/WebSocketMain.swf";
+//WEB_SOCKET_SWF_LOCATION = 'client/swf/WebSocketMain.swf';
 
 var initialized = false;
 var hasBuzzed = false;
+var hasAnswered = false;
+var isAnswering = false;
 var hasLeft = false;
 
 var noSubmit = function(){}
 var wordsPos = 0;
+var words = '';
 var lastQuestion;
 var socket;
