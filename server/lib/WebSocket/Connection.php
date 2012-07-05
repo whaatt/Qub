@@ -260,6 +260,11 @@ class Connection
     
     public function send($payload, $type = 'text', $masked = false)
     {		
+		gc_enable();
+		gc_enabled();
+		gc_collect_cycles();
+		gc_disable();
+		
 		$encodedData = $this->hybi10Encode($payload, $type, $masked);			
 		if(!$this->server->writeBuffer($this->socket, $encodedData))
 		{
