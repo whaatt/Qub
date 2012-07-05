@@ -397,10 +397,13 @@ class QubApplication extends Application
 				{
 				$busy = 'The game is currently on the last question.<br>';
 				$busy = $busy . 'Please start or join a different game.<br><br>';
+				
+				$client->send($this->_encodeData('notice', $busy));
+				return true;
 				}
 			}
 			
-			else if (isset($timeLeft[0]) and $timeLeft[0] == 0)
+			if (isset($timeLeft[0]) and $timeLeft[0] == 0)
 			{
 				$busy = 'The game is currently waiting for a question.<br>';
 				$busy = $busy . 'When ready, you will be redirected automatically.<br><br>';

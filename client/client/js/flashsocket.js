@@ -1,7 +1,7 @@
 // Copyright: Hiroshi Ichikawa <http://gimite.net/en/>
 // License: New BSD License
 // Reference: http://dev.w3.org/html5/websockets/
-// Reference: http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol
+// Reference: http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-10
 
 (function() {
   
@@ -149,7 +149,7 @@
       events[i](event);
     }
     var handler = this["on" + event.type];
-    if (handler) handler(event);
+    if (handler) handler.apply(this, [event]);
   };
 
   /**
@@ -157,6 +157,7 @@
    * @param {Object} flashEvent
    */
   WebSocket.prototype.__handleEvent = function(flashEvent) {
+    
     if ("readyState" in flashEvent) {
       this.readyState = flashEvent.readyState;
     }
@@ -168,8 +169,10 @@
     if (flashEvent.type == "open" || flashEvent.type == "error") {
       jsEvent = this.__createSimpleEvent(flashEvent.type);
     } else if (flashEvent.type == "close") {
-      // TODO implement jsEvent.wasClean
       jsEvent = this.__createSimpleEvent("close");
+      jsEvent.wasClean = flashEvent.wasClean ? true : false;
+      jsEvent.code = flashEvent.code;
+      jsEvent.reason = flashEvent.reason;
     } else if (flashEvent.type == "message") {
       var data = decodeURIComponent(flashEvent.message);
       jsEvent = this.__createMessageEvent("message", data);
@@ -178,6 +181,7 @@
     }
     
     this.dispatchEvent(jsEvent);
+    
   };
   
   WebSocket.prototype.__createSimpleEvent = function(type) {

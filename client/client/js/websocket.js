@@ -313,7 +313,8 @@ $(document).ready(function() {
 	});
 });
 
-//WEB_SOCKET_SWF_LOCATION = 'client/swf/WebSocketMain.swf';
+//window.WEB_SOCKET_SWF_LOCATION = 'client/swf/WebSocketMain.swf';
+//window.WEB_SOCKET_FORCE_FLASH = true;
 
 var initialized = false;
 var hasBuzzed = false;
