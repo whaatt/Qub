@@ -8,17 +8,21 @@ function status(type) {
 }
 
 function postProcess(){
+	globalWords = '';
+	wordsPos = 0;
+	$('#qs').html('');
 	$('#scroll').show();
 	$('#scroll2').hide();
-	$('#qs').html('');
 }
 
 function read(words){
 	var startPos = wordsPos;
 	
-	if (wordsPos < words.length && !hasBuzzed && !hasLeft){
+	if (wordsPos < words.length && !hasBuzzed && !hasLeft && !hasAnswered){
 		$('#scroll').hide()
 		$('#scroll2').show()
+		
+		$('#prompt').removeAttr('disabled');
 		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
 		
 		wordsPos += 1;
@@ -176,44 +180,66 @@ function handle(response) {
 			$('#log').html('');
 			break;
 		case 'wrong':
-			postProcess();
-			hasAnswered = true;
-			log(response.data, 'blue', false);
-			$('#prompt').focus();
+			if (!isWronged){
+				postProcess();
+				isWronged = true;
+				hasAnswered = true;
+				isAnswering = false;
+				hasBuzzed = false;
+				isReading = false;
+				log(response.data, 'blue', false);
+				$('#prompt').focus();
+			}
 			break;
 		case 'display':
-			postProcess();
-			$('#prompt').removeAttr('disabled');
-			hasAnswered = true;
-			hasBuzzed = true;
-			log(lastQuestion + '<br>', 'purple', false);
+			if (!isDisplayed){
+				postProcess();
+				isDisplayed = true;
+				hasAnswered = true;
+				isAnswering = false;
+				hasBuzzed = false;
+				isReading = false;
+				log(lastQuestion + '<br>', 'purple', false);
+				$('#prompt').removeAttr('disabled');
+			}
 			break;
 		case 'stats':
-			log(response.data, '#00CC66', false);
+			if (!isStat){
+				isStat = true;
+				log(response.data, '#00CC66', false);
+			}
 			break;
 		case 'question':
-			hasBuzzed = false; hasLeft = false; hasAnswered = false; 
-			wordsPos = 0;
-			lastQuestion = response.data;
-			words = response.data.split(' ');
-			read(words);
+			hasBuzzed = false; hasAnswered = false; 
+			hasLeft = false; isReading = true; isStat = false;
+			isDisplayed = false; isWronged = false;
+			wordsPos = 0; lastQuestion = response.data;
+			globalWords = response.data.split(' ');
+			read(globalWords);
 			break;
 		case 'read':
-			hasBuzzed = false;
-			$('#buzz').remove();
-			$('#prompt').removeAttr('disabled');
-			read(words);
+			if (!hasAnswered && !isReading && !isAnswering){
+				hasBuzzed = false;
+				isReading = true;
+				$('#buzz').remove();
+				$('#prompt').removeAttr('disabled');
+				read(globalWords);
+			}
 			break;
 		case 'buzz':
 			hasBuzzed = true;
-			$('#qs').append('<span id=\'buzz\' style=\'color: yellow;\'>Buzz!! </span>');
-			$('#prompt').attr('disabled', true);
+			if (hasAnswered == false)
+			{
+				isReading = false;
+				$('#qs').append('<span id=\'buzz\' style=\'color: yellow;\'>Buzz!! </span>');
+				$('#prompt').attr('disabled', true);
+			}
 			break;
 		case 'sbuzz':
-			hasBuzzed = true;
+			hasBuzzed = true; isReading = false;
 			$('#qs').append('<span style=\'color: yellow;\'>Buzz!! </span>'); isAnswering = true;
 			function timeOut() { if (hasAnswered == false) { $('#prompt').val('answer'); $('#command').submit(); } }
-			setTimeout(timeOut, 5000);
+			setTimeout(timeOut, 9000);
 			break;
 		case 'wait':
 			log(response.data, 'blue', false);
@@ -225,7 +251,7 @@ function handle(response) {
 			log(response.data, 'green', false);
 			log('Input temporarily disabling.', 'green', false);
 			$('#prompt').attr('disabled', true);
-			cont = function() { $('#prompt').val('continue'); $('#command').submit();  $('#prompt').removeAttr('disabled'); }
+			cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
 			setTimeout(cont, 5000);
 			break;
 		default:
@@ -261,7 +287,11 @@ $(document).ready(function() {
 
 			if (action == 'buzz')
 			{
-				hasBuzzed = true;
+				if (hasAnswered)
+				{
+					$('#prompt').val();
+					return false;
+				}
 			}
 			
 			if (isAnswering)
@@ -289,10 +319,14 @@ var initialized = false;
 var hasBuzzed = false;
 var hasAnswered = false;
 var isAnswering = false;
+var isReading = false;
+var isDisplayed = false;
+var isWronged = false;
+var isStat = false;
 var hasLeft = false;
 
 var noSubmit = function(){}
 var wordsPos = 0;
-var words = '';
-var lastQuestion;
+var globalWords = '';
+var lastQuestion = '';
 var socket;

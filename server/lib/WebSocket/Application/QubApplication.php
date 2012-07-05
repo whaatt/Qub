@@ -36,7 +36,7 @@ class QubApplication extends Application
 		
 		if ($this->_locations[$id] != 'main')
 		{
-			if ($this->_games[$gameNumber]['state']['buzzer'] = $this->_nicknames[$id])
+			if (isset($this->_games[$gameNumber]['state']['isReading']) and $this->_games[$gameNumber]['state']['isReading'])
 			{
 				$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
 				
@@ -67,9 +67,8 @@ class QubApplication extends Application
 		$actionName = '_action' . ucfirst(strtolower(($decodedData['action'])));		
 		$actionNameWO = strtolower(($decodedData['action']));
 		$clientID = $client->getClientId();
-		
 		$decodedData = implode(' ', $decodedData['data']);
-		
+
 		if (strlen($decodedData) > 300 or strlen($actionName) > 20){
 			$client->send($this->_encodeData('notice', 'One or more parts of your command were too long.<br>'));
 			return false;
@@ -321,10 +320,18 @@ class QubApplication extends Application
 		{
 			array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.<br>');
 		}
-		
+			
 		if (count($this->_games[$currentLoc]['users']) == 0)
 		{
 			$this->_gameDestroy($currentLoc);
+		}
+		
+		if (isset($this->_games[$currentLoc]['state']['isReading']) and $this->_games[$currentLoc]['state']['isReading'])
+		{
+			if (count($this->_games[$currentLoc]['state']['negs']) >= count($this->_games[$currentLoc]['users']))
+			{
+				$this->_gameSkip($currentLoc);
+			}
 		}
 		
 		$this->_locations[$clientID] = 'main';
@@ -381,8 +388,19 @@ class QubApplication extends Application
 		else
 		{			
 			$timeLeft = $this->_gamePing(intval($data[0])-1);
+			$length = $this->_games[intval($data[0])-1]['parameters']['length'];
+			$posTemp = $this->_games[intval($data[0])-1]['state']['position'];
 			
-			if (isset($timeLeft[0]) and $timeLeft[0] == 0)
+			if (is_numeric($length))
+			{
+				if ($length + 1 == $posTemp)
+				{
+				$busy = 'The game is currently on the last question.<br>';
+				$busy = $busy . 'Please start or join a different game.<br><br>';
+				}
+			}
+			
+			else if (isset($timeLeft[0]) and $timeLeft[0] == 0)
 			{
 				$busy = 'The game is currently waiting for a question.<br>';
 				$busy = $busy . 'When ready, you will be redirected automatically.<br><br>';
@@ -715,10 +733,18 @@ class QubApplication extends Application
 		
 		$gameNumber = intval(substr($clientLoc,5,strlen($clientLoc)-5));
 	
-		if(!$this->_games[$gameNumber]['state']['isReading'])
+		if(!isset($this->_games[$gameNumber]['state']['isReading']) or !$this->_games[$gameNumber]['state']['isReading'])
 		{
 			$client->send($this->_encodeData('notice', 'This command does not apply now.<br>'));
 			return false;
+		}
+		
+		if(!empty($this->_games[$gameNumber]['state']['buzzer']))
+		{
+			if (in_array($this->_games[$gameNumber]['state']['buzzer'], $this->_games[$gameNumber]['users']))
+			{
+				return false;
+			}
 		}
 		
 		$this->_games[$gameNumber]['state']['buzzer'] = $clientID;
@@ -806,7 +832,10 @@ class QubApplication extends Application
 				$stats = $stats . 'Wrong Players: ';
 				foreach ($this->_games[$gameNumber]['state']['negs'] as $negger)
 				{
-					$stats = $stats . $this->_nicknames[$negger[0]] . ' [' . $negger[1] . '], ';
+					if (isset($this->_nicknames[$negger[0]]))
+					{
+						$stats = $stats . $this->_nicknames[$negger[0]] . ' [' . $negger[1] . '], ';
+					}
 				}
 				$stats = substr($stats, 0, strlen($stats)-2);
 				$stats = $stats . '<br>';
@@ -1046,10 +1075,11 @@ class QubApplication extends Application
 	{
 		$this->_games[$gameNumber]['state']['position'] += 1;
 		$length = $this->_games[$gameNumber]['parameters']['length'];
+		$posTemp = $this->_games[$gameNumber]['state']['position'];
 
 		foreach ($this->_games[$gameNumber]['equeue'] as $entUser)
 		{
-			if (isset($this->_clients[$entUser[0]]) and $this->_locations[$entUser[0]] == 'main')
+			if (isset($this->_clients[$entUser[0]]) and $this->_locations[$entUser[0]] == 'main' and !($length + 1 == $posTemp))
 			{
 				array_push($this->_games[$gameNumber]['users'], $entUser[0]);
 				$this->_locations[$entUser[0]] = 'game-' . strval($gameNumber);
