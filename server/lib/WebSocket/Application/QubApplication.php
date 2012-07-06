@@ -49,6 +49,7 @@ class QubApplication extends Application
 				}
 			}
 			
+			$this->_gamePing($gameNumber);
 			$this->_actionLeave('', $client);
 		}
 		
