@@ -174,6 +174,7 @@ function handle(response) {
 			$('#log').html('')
 			isWaited = false;
 			isFinWaited = false;
+			isJoined = false;
 			break;
 		case 'finish':
 			function switchScreen() { $('#log').html(''); $('#prompt').val('headers'); $('#command').submit(); }
@@ -199,7 +200,7 @@ function handle(response) {
 			}
 			break;
 		case 'display':
-			if (!isDisplayed){
+			if (!isDisplayed && isJoined){
 				postProcess();
 				isWaited = false;
 				isFinWaited = false;
@@ -213,7 +214,7 @@ function handle(response) {
 			}
 			break;
 		case 'stats':
-			if (!isStat){
+			if (!isStat && isJoined){
 				isStat = true;
 				log(response.data, '#00CC66', false);
 			}
@@ -221,7 +222,7 @@ function handle(response) {
 		case 'question':
 			hasBuzzed = false; hasAnswered = false; 
 			hasLeft = false; isReading = true; isStat = false;
-			isDisplayed = false; isWronged = false;
+			isDisplayed = false; isWronged = false; isJoined = true;
 			wordsPos = 0; lastQuestion = response.data;
 			globalWords = response.data.split(' ');
 			read(globalWords);
@@ -336,6 +337,7 @@ var isDisplayed = false;
 var isWronged = false;
 var isWaited = false
 var isFinWaited = false;
+var isJoined = false;
 var isStat = false;
 var hasLeft = false;
 
