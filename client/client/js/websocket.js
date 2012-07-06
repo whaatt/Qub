@@ -62,7 +62,6 @@ function initialize() {
   
 	catch(ex) { 
 		status('error')
-		log('An error occurred in the connection.<br>Please try the newest version of a modern browser (not IE).', 'orange'); 
 	}
   
 	$('#prompt').focus();
@@ -182,6 +181,8 @@ function handle(response) {
 		case 'wrong':
 			if (!isWronged){
 				postProcess();
+				isWaited = false;
+				isFinWaited = false;
 				isWronged = true;
 				hasAnswered = true;
 				isAnswering = false;
@@ -194,6 +195,8 @@ function handle(response) {
 		case 'display':
 			if (!isDisplayed){
 				postProcess();
+				isWaited = false;
+				isFinWaited = false;
 				isDisplayed = true;
 				hasAnswered = true;
 				isAnswering = false;
@@ -242,17 +245,23 @@ function handle(response) {
 			setTimeout(timeOut, 9000);
 			break;
 		case 'wait':
-			log(response.data, 'blue', false);
-			var nextText = 'Type \'next\' to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
-			nextText = nextText + 'You are guaranteed two minutes of wait time.';
-			log(nextText, 'green', false);
+			if (!isWaited){
+				isWaited = true;
+				log(response.data, 'blue', false);
+				var nextText = 'Type \'next\' to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
+				nextText = nextText + 'You are guaranteed two minutes of wait time.';
+				log(nextText, 'green', false);
+			}
 			break;
 		case 'finWait':
-			log(response.data, 'green', false);
-			log('Input temporarily disabling.', 'green', false);
-			$('#prompt').attr('disabled', true);
-			cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
-			setTimeout(cont, 5000);
+			if (!isFinWaited){
+				isFinWaited = true;
+				log(response.data, 'green', false);
+				log('Input temporarily disabling.', 'green', false);
+				$('#prompt').attr('disabled', true);
+				cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
+				setTimeout(cont, 5000);
+			}
 			break;
 		default:
 			log(response.data, 'blue', false);
@@ -261,7 +270,6 @@ function handle(response) {
 }
 
 $(document).ready(function() {
-	
 	$('#log').slimScroll({ color: '#444', alwaysVisible: true, start: 'bottom', distance: 3, height: 280 });
 	$('#qs').slimScroll({ color: '#444', alwaysVisible: true, start: 'bottom', distance: 3, height: 280 });
 
@@ -313,9 +321,6 @@ $(document).ready(function() {
 	});
 });
 
-//window.WEB_SOCKET_SWF_LOCATION = 'client/swf/WebSocketMain.swf';
-//window.WEB_SOCKET_FORCE_FLASH = true;
-
 var initialized = false;
 var hasBuzzed = false;
 var hasAnswered = false;
@@ -323,6 +328,8 @@ var isAnswering = false;
 var isReading = false;
 var isDisplayed = false;
 var isWronged = false;
+var isWaited = false
+var isFinWaited = false;
 var isStat = false;
 var hasLeft = false;
 
