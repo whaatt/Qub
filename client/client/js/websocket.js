@@ -3,6 +3,10 @@ function log(msg, color, fade) {
 	else{ $('#log').prepend('<span style=\'color: ' + color + ';\'>' + msg + '</span><br />') }
 };
 
+function clean(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function status(type) {
 	$('#status').removeClass().addClass(type).html(type).hide().fadeIn();
 }
@@ -114,9 +118,9 @@ function display(message) {
 		case 'answer':
 			break;
 		default:
-			var data = message.data
-			if (data != '') { log('Command: ' + message.action + ' ' + data.join(' ') + '<br>', 'green', true); }
-			else { log('Command: ' + message.action + '<br>', 'green', true); }
+			var data = clean(message.data)
+			if (data != '') { log('Command: ' + clean(message.action) + ' ' + data.join(' ') + '<br>', 'green', true); }
+			else { log('Command: ' + clean(message.action) + '<br>', 'green', true); }
 			break;
 	}
 }
@@ -168,6 +172,8 @@ function handle(response) {
 			break;
 		case 'change':
 			$('#log').html('')
+			isWaited = false;
+			isFinWaited = false;
 			break;
 		case 'finish':
 			function switchScreen() { $('#log').html(''); $('#prompt').val('headers'); $('#command').submit(); }

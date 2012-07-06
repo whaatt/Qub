@@ -65,11 +65,11 @@ class QubApplication extends Application
 		if($decodedData === false){ return false; }
 		
 		$actionName = '_action' . ucfirst(strtolower(($decodedData['action'])));		
-		$actionNameWO = strtolower(($decodedData['action']));
+		$actionNameWO = htmlentities(strtolower(($decodedData['action'])));
 		$clientID = $client->getClientId();
 		$decodedData = implode(' ', $decodedData['data']);
 
-		if (strlen($decodedData) > 300 or strlen($actionName) > 20){
+		if (strlen($decodedData) > 300 or strlen($actionName) > 40){
 			$client->send($this->_encodeData('notice', 'One or more parts of your command were too long.<br>'));
 			return false;
 		}
@@ -675,6 +675,11 @@ class QubApplication extends Application
 			return false;
 		}
 		
+		if ($this->_games[$gameNumber]['state']['isContinued'])
+		{
+			return false;
+		}
+		
 		if (time() - $this->_games[$gameNumber]['state']['runTime'] >= 5 and $this->_games[$gameNumber]['state']['isNexted'])
 		{
 			if (!in_array($clientID, $this->_games[$gameNumber]['state']['continues']))
@@ -690,6 +695,8 @@ class QubApplication extends Application
 
 		if (count($this->_games[$gameNumber]['state']['continues']) >= count($this->_games[$gameNumber]['users']))
 		{	
+			$this->_games[$gameNumber]['state']['isContinued'] = true;
+		
 			$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=HS&params[random]=true';
 			$questionInfo = json_decode(file_get_contents($URI));
 			
@@ -708,7 +715,6 @@ class QubApplication extends Application
 			$info = $info . 'Tournament Year: ' . $year . '<br>';
 		
 			$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
-			$this->_games[$gameNumber]['state']['runTime'] = time();
 			
 			foreach ($usersID as $clientsID)
 			{
@@ -716,8 +722,49 @@ class QubApplication extends Application
 				$this->_clients[$clientsID]->send($this->_encodeData('question', $question));
 			}
 			
+			$this->_games[$gameNumber]['state']['runTime'] = time();
 			$this->_games[$gameNumber]['state']['isReading'] = true;
 		}
+		
+		return true;
+	}
+	
+	private function _gameContinue($gameNumber)
+	{
+		if ($this->_games[$gameNumber]['state']['isContinued'])
+		{
+			return false;
+		}
+	
+		$this->_games[$gameNumber]['state']['isContinued'] = true;
+	
+		$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=HS&params[random]=true';
+		$questionInfo = json_decode(file_get_contents($URI));
+		
+		$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
+		$this->_games[$gameNumber]['state']['answer'] = $questionInfo->results[0]->answer;
+		
+		$source = $questionInfo->results[0]->tournament;
+		$year = $questionInfo->results[0]->year;
+		$category = $questionInfo->results[0]->category;
+		$question = $questionInfo->results[0]->question;
+		
+		$this->_games[$gameNumber]['state']['question'] = $question;
+	
+		$info = 'Question Category: ' . $category . '<br>';
+		$info = $info . 'Question Source: ' . $source . '<br>';
+		$info = $info . 'Tournament Year: ' . $year . '<br>';
+	
+		$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+		
+		foreach ($usersID as $clientsID)
+		{
+			$this->_clients[$clientsID]->send($this->_encodeData('notice', $info));
+			$this->_clients[$clientsID]->send($this->_encodeData('question', $question));
+		}
+		
+		$this->_games[$gameNumber]['state']['runTime'] = time();
+		$this->_games[$gameNumber]['state']['isReading'] = true;
 		
 		return true;
 	}
@@ -1062,11 +1109,20 @@ class QubApplication extends Application
 			return array(0, ceil($estJoin));
 		}
 		
-		else if (isset($this->_games[$gameNumber]['state']['isNexted']))
+		else if (isset($this->_games[$gameNumber]['state']['isNexted']) and $this->_games[$gameNumber]['state']['isNexted'])
 		{
 			if ($this->_games[$gameNumber]['state']['isNexted'] and !$this->_games[$gameNumber]['state']['isReading'])
 			{
-				$estJoin = 120*.350 + 20 + (time() - $this->_games[$gameNumber]['state']['runTime']);
+				$now = time();
+				$time = $this->_games[$gameNumber]['state']['runTime'];
+			
+				if (($now - $time) > 5)
+				{
+					$this->_gameContinue($gameNumber);
+					return $this->_gamePing($gameNumber);
+				}
+			
+				$estJoin = 120*.350 + 25 - ($now - $time);
 				return array(1, ceil($estJoin));
 			}
 		}
@@ -1112,12 +1168,15 @@ class QubApplication extends Application
 		$this->_games[$gameNumber]['state']['isReading'] = false;
 		$this->_games[$gameNumber]['state']['isTaken'] = false;
 		$this->_games[$gameNumber]['state']['isNexted'] = false;
+		$this->_games[$gameNumber]['state']['isContinued'] = false;
 		$this->_games[$gameNumber]['state']['answer'] = null;
 		$this->_games[$gameNumber]['state']['question'] = null;
 		$this->_games[$gameNumber]['state']['buzzer'] = null;
 		$this->_games[$gameNumber]['state']['continues'] = array();
 		$this->_games[$gameNumber]['state']['negs'] = array();
 		$this->_games[$gameNumber]['state']['correct'] = array();
+		
+		$hereLoc = 'game-' . strval($gameNumber);
 		
 		foreach ($usersID as $clientsID)
 		{
@@ -1127,8 +1186,11 @@ class QubApplication extends Application
 			}
 		
 			foreach ($this->_games[$gameNumber]['equeue'] as $notItem)
-			{
-				$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem[1]));
+			{	
+				if (isset($this->_clients[$notItem[0]]) and $this->_locations[$notItem[0]] == $hereLoc and !($length + 1 == $posTemp))
+				{
+					$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem[1]));
+				}
 			}
 			
 			$this->_clients[$clientsID]->send($this->_encodeData('wait', ''));
