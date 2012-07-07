@@ -83,6 +83,7 @@ class QubApplication extends Application
 		
 		if(method_exists($this, $actionName))
 		{			
+			echo ('User ' . $this->_nicknames[$clientID] . ' performed ' . $actionNameWO . ': ' . strval(memory_get_usage()) . "\n"); 
 			call_user_func(array($this, $actionName), $decodedData, $client);
 		}
 		
@@ -1268,17 +1269,18 @@ class QubApplication extends Application
 		
 		$help = $help . 'To get into a game: Begin either by typing \'game\' or \'list\'. The former will start a game, ';
 		$help = $help . 'while the latter will list games in progress. To join a game in progress, type \'join\' followed ';
-		$help = $help . 'by the game\'s number. (To start a game with a finite number of questions, type \'game\' followed ';
-		$help = $help . 'by the number of questions.)<br><br>';
+		$help = $help . 'by the game\'s number. To start a game with a finite number of questions, type \'game\' followed ';
+		$help = $help . 'by the number of questions. Other options are currently in development and are disabled.<br><br>';
 		
 		$help = $help . 'To play in a game: After you have entered a game room, a game may or may not be in progress. If a ';
 		$help = $help . 'question does not appear shortly, type \'start\' to try starting the game. Once questions begin to ';
-		$help = $help . 'appear, you may type \'buzz\' to buzz in, and then your answer. You will be guided through this.<br><br>';
+		$help = $help . 'appear, you may type \'buzz\' to buzz in, and then your answer. Type \'leave\' to exit the game you ';
+		$help = $help . 'are playing. For game info, type \'headers\'. You will be partially guided through this in-game.<br><br>';
 		
-		$help = $help . 'To chat and get information: Chatting to everybody in the main lobby or game rooms is as simple as ';
+		$help = $help . 'To chat with other players: Chatting to everybody in the main lobby or game rooms is as simple as ';
 		$help = $help . 'typing \'chat\' followed by your message. To private message (PM) someone, type \'pm\' followed by ';
 		$help = $help . 'the user\'s nickname and then your message. To change your nickname, type \'nick\' followed by your ';
-		$help = $help . 'new desired nickname. The default nickname is \'Anonymous\'.<br>';
+		$help = $help . 'new desired nickname. The default nickname is \'Anonymous\'. Administrator nicknames are protected.<br>';
 		
 		$client->send($this->_encodeData('notice', $help));
 	}
