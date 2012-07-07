@@ -1,16 +1,20 @@
+//Add Info To Console Display
 function log(msg, color, fade) {
 	if(fade){ $('#log').prepend('<span style=\'color: ' + color + ';\'>' + msg + '</span><br />').hide().fadeIn('fast'); }
 	else{ $('#log').prepend('<span style=\'color: ' + color + ';\'>' + msg + '</span><br />') }
 };
 
+//Sanitize Command Data
 function clean(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+//Change Status Indicator
 function status(type) {
 	$('#status').removeClass().addClass(type).html(type).hide().fadeIn();
 }
 
+//End Of Question Processing
 function postProcess(){
 	globalWords = '';
 	wordsPos = 0;
@@ -19,6 +23,7 @@ function postProcess(){
 	$('#scroll2').hide();
 }
 
+//Read Questions Recursively
 function read(words){
 	var startPos = wordsPos;
 	
@@ -33,6 +38,7 @@ function read(words){
 		setTimeout(function(){ read(words); }, 350);
 	}
 	
+	//Skip At End
 	function skip() {
 		if (!hasBuzzed){
 			hasBuzzed = true;
@@ -40,11 +46,13 @@ function read(words){
 		}
 	}
 	
+	//Check If End Has Come
 	if (startPos == words.length){
 		setTimeout(skip, 5000);
 	}
 }
 
+//Create WebSocket
 function initialize() {
 	var host = 'ws://ec2-50-17-82-127.compute-1.amazonaws.com:8000/qub';
 	//var host = 'ws://127.0.0.1:8000/qub';
@@ -71,6 +79,7 @@ function initialize() {
 	$('#prompt').focus();
 }
 
+//Display Input Appropriately
 function display(message) {
 	switch(message.action){
 		case 'nick':
@@ -124,6 +133,12 @@ function display(message) {
 			break;
 	}
 }
+
+/* Display Output Appropriately:
+There are several state variables
+here that perform their stated purpose
+in checks for context. They are
+initialized at the end of this script. */
 
 function handle(response) {
 	switch(response.action){
@@ -276,16 +291,20 @@ function handle(response) {
 	}
 }
 
+//Handle Page Load, Initialize Stuff
 $(document).ready(function() {
+	//Pretty Scrollbar
 	$('#log').slimScroll({ color: '#444', alwaysVisible: true, start: 'bottom', distance: 3, height: 280 });
 	$('#qs').slimScroll({ color: '#444', alwaysVisible: true, start: 'bottom', distance: 3, height: 280 });
 
 	if(!initialized){ initialize(); }
 	
+	//Keep Focus On Input
 	$('#prompt').blur(function() {
 		$('#prompt').focus(); 
 	});
 
+	//Submit Command, Parsed
 	$('#command').submit(function() {
 		var typed = $('#prompt').val();
 		if (typed.replace(/\s/g, '') != ''){
@@ -327,6 +346,12 @@ $(document).ready(function() {
 		}
 	});
 });
+
+/* This is where I initialize
+a billion different variables
+used throughout the client
+code. As previously stated,
+they should be self-explanatory */
 
 var initialized = false;
 var hasBuzzed = false;

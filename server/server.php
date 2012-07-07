@@ -17,7 +17,7 @@ $classLoader->register();
 $server = new \WebSocket\Server('10.195.109.238', 8000, false);
 //$server = new \WebSocket\Server('127.0.0.1', 8000, false);
 
-// server settings:
+//Server Settings
 $server->setMaxClients(100);
 //$server->setCheckOrigin(false);
 $server->setCheckOrigin(true);
