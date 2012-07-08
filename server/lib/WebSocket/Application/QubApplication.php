@@ -1191,7 +1191,12 @@ class QubApplication extends Application
 			if(($now - $time) > 120)
 			{
 				$this->_gameNext($gameNumber);
-				return $this->_gamePing($gameNumber);
+				
+				$now_d = time();
+				$time_d = $this->_games[$gameNumber]['state']['runTime'];
+				
+				$estJoin_d = 120*.350 + 25 - ($now_d - $time_d);
+				return array(1, ceil($estJoin_d));
 			}
 			
 			$estJoin = 120 - ($now - $time) + 1;
@@ -1209,7 +1214,13 @@ class QubApplication extends Application
 				if (($now - $time) > 5)
 				{
 					$this->_gameContinue($gameNumber);
-					return $this->_gamePing($gameNumber);
+					
+					$now_d = time();
+					$time_d = $this->_games[$gameNumber]['state']['runTime'];
+					$readTime_d = count(explode(' ', $this->_games[$gameNumber]['state']['question']))*.350 + 20;
+				
+					$estJoin_d = ceil($readTime_d) - ($now_d - $time_d) + 1;
+					return array(1, ceil($estJoin_d));
 				}
 			
 				$estJoin = 120*.350 + 25 - ($now - $time);
