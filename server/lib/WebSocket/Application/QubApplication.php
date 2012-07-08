@@ -55,8 +55,8 @@ class QubApplication extends Application
 				}
 			}
 			
-			$this->_gamePing($gameNumber); #Ping For Safety
-			$this->_actionLeave('', $client); #Leave Game
+			$this->_actionLeave('', $client, true); #Leave Game With Disconnect Header
+			$this->_gamePing($gameNumber); #Ping For Safety, Consistency
 		}
 		
 		unset($this->_nicknames[$id]);
@@ -314,20 +314,24 @@ class QubApplication extends Application
 	}
 	
 	//Leave Game Room
-	private function _actionLeave($data, $client)
+	private function _actionLeave($data, $client, $disconnect = false)
 	{
 		$clientID = $client->getClientId();
 		$clientNick = $this->_nicknames[$clientID];
 		
 		//Location Must Be Room
-		if ($this->_locations[$clientID] == 'main')
+		if ($this->_locations[$clientID] == 'main' and !$disconnect)
 		{
 			$client->send($this->_encodeData('notice', 'This command does not apply here.'));
 			return false;
 		}
 		
 		//Code To Prompt Client Change
-		$client->send($this->_encodeData('leave', ''));
+		if (!$disconnect) 
+		{
+			$client->send($this->_encodeData('leave', ''));
+		}
+		
 		$currentLoc = $this->_locations[$clientID];
 		$currentLoc = intval(substr($currentLoc,5,strlen($currentLoc)-5));
 		
@@ -371,7 +375,12 @@ class QubApplication extends Application
 		}
 		
 		$this->_locations[$clientID] = 'main';
-		$this->_actionHeaders('', $client);
+		
+		if (!$disconnect)
+		{
+			$this->_actionHeaders('', $client);
+		}
+		
 		return true;
 	}
 	
