@@ -18,5 +18,5 @@ An Implementation of Multiplayer Quiz Bowl.
 - Run server.php to start the server-side code.
 
 ### Demo
-
 - See skalon.com/qub for a working implementation of this.
+- I would certainly appreciate notification of clones.

@@ -300,8 +300,11 @@ $(document).ready(function() {
 	if(!initialized){ initialize(); }
 	
 	//Keep Focus On Input
-	$('#prompt').blur(function() {
-		$('#prompt').focus(); 
+	$('#prompt').focus();
+	$('body').click(function(){
+		if (!$('#prompt').is(':focus')){
+			$('#prompt').focus();
+		}
 	});
 
 	//Submit Command, Parsed
