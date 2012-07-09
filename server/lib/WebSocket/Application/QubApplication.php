@@ -93,8 +93,11 @@ class QubApplication extends Application
 		//Execute Client Method
 		if(method_exists($this, $actionName))
 		{			
-			echo ('User ' . $this->_nicknames[$clientID] . ' performed ' . $actionNameWO . ': ' . strval(memory_get_usage()) . "\n"); 
-			call_user_func(array($this, $actionName), $decodedData, $client);
+			$actionOut = 'User ' . $this->_nicknames[$clientID] . ' performed ' . $actionNameWO . '. ';
+			$memoryOut = 'Current memory usage is ' . strval(memory_get_usage()) . ".";
+			$logOut = $actionOut . $memoryOut . PHP_EOL;
+			
+			echo ($logOut); call_user_func(array($this, $actionName), $decodedData, $client);
 		}
 		
 		//Command Not Found
