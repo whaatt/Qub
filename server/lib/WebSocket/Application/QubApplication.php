@@ -130,10 +130,28 @@ class QubApplication extends Application
 		$data = explode(' ', $data);
 		
 		//Game Limit
-		if (count($this->_games) >= 5)
+		if (count($this->_games) >= 10)
 		{
 			$client->send($this->_encodeData('notice', 'Please join a game in progress.<br>'));
-			$client->send($this->_encodeData('notice', 'At this time, the server supports a maximum of five games.<br>'));
+			$client->send($this->_encodeData('notice', 'At this time, the server supports a maximum of ten games.<br>'));
+			return false;
+		}
+		
+		$privateCount = 0;
+		
+		foreach ($this->_games as $check)
+		{
+			if ($check['parameters']['type'] == 'private')
+			{
+				$privateCount = $privateCount + 1;
+			}
+		}
+		
+		//Private Game Limit
+		if ($privateCount >= 5)
+		{
+			$client->send($this->_encodeData('notice', 'Please join a game in progress or start a public game.<br>'));
+			$client->send($this->_encodeData('notice', 'At this time, a maximum of five private games is supported.<br>'));
 			return false;
 		}
 		
@@ -162,6 +180,7 @@ class QubApplication extends Application
 		//To Set Game Parameters
 		//Go If You Dare
 		
+		//Set Game Length
 		if (isset($data[0]))
 		{
 			switch($data[0])
@@ -171,14 +190,16 @@ class QubApplication extends Application
 				default:
 					if (is_numeric($data[0]) and $data[0] >= 1)
 					{ 
-						$this->_games[$gameNumber]['parameters']['length'] = intval($data[0]); break;
+						$this->_games[$gameNumber]['parameters']['length'] = intval($data[0]);
 					}
 					
 					else 
 					{ 
 						$defaults .= 'Invalid game length selected. Defaulting to Endless length.<br>'; 
-						$this->_games[$gameNumber]['parameters']['length'] = 'endless'; break;
+						$this->_games[$gameNumber]['parameters']['length'] = 'endless';
 					}
+					
+					break;
 			}
 		}
 		else 
@@ -187,6 +208,7 @@ class QubApplication extends Application
 			$this->_games[$gameNumber]['parameters']['length'] = 'endless';
 		}
 		
+		//Set Privacy Level As Type
 		if (isset($data[1]))
 		{
 			switch($data[1])
@@ -194,9 +216,19 @@ class QubApplication extends Application
 				case 'public':
 					$this->_games[$gameNumber]['parameters']['type'] = 'public'; break;
 				default:
-					if ($data[1] == 'private'){ $defaults .= 'Private games are not supported at this time.<br>'; }
-					else { $defaults .= 'Invalid game type selected. Defaulting to Public type.<br>'; }
-					$this->_games[$gameNumber]['parameters']['type'] = 'public'; break;
+					if ($data[1] == 'private')
+					{ 
+						$this->_games[$gameNumber]['parameters']['type'] = 'private';
+						$this->_games[$gameNumber]['parameters']['password'] = $this->_createPassword(6);
+					}
+
+					else 
+					{ 
+						$defaults .= 'Invalid game type selected. Defaulting to Public type.<br>';
+						$this->_games[$gameNumber]['parameters']['type'] = 'public'; 
+					}
+					
+					break;
 			}
 		}
 		else
@@ -416,6 +448,24 @@ class QubApplication extends Application
 			return false;
 		}
 		
+		//Password Protect Private Games
+		if ($this->_games[intval($data[0])-1]['parameters']['type'] == 'private')
+		{
+			//Make Sure Password Is There
+			if (!isset($data[1]) and $clientNick != 'admin')
+			{
+				$client->send($this->_encodeData('notice', 'Private games require a password.'));
+				return false;
+			}
+			
+			//Precondition That Password Parameter Is Set, Except For Admin
+			if (isset($data[1]) and strtolower($data[1]) != $this->_games[intval($data[0])-1]['parameters']['password'] and $clientNick != 'admin')
+			{
+				$client->send($this->_encodeData('notice', 'Sorry, your password was incorrect.'));
+				return false;
+			}
+		}
+		
 		//Limit User Count
 		if (count($this->_games[intval($data[0])-1]['users']) > 10)
 		{
@@ -474,7 +524,8 @@ class QubApplication extends Application
 				$busy = $busy . 'If the game seems hung, please retry joining in ' . strval($timeLeft[1]) . ' seconds.<br>';
 			}
 			
-			else{
+			else
+			{
 				return true;
 			}
 			
@@ -486,9 +537,8 @@ class QubApplication extends Application
 				if ($entry[0] == $clientID)
 				{
 					$this->_games[intval($data[0])-1]['equeue'][$key] = array($clientID, 'User ' . $clientNick . ' has entered the room.<br>');
+					$isIn = true;
 				}
-				
-				$isIn = true;
 			}
 			
 			if(!$isIn)
@@ -524,8 +574,8 @@ class QubApplication extends Application
 		
 		if ($this->_locations[$clientID] == 'main')
 		{
-			$headers = 'Welcome to Qub.<br><br>This is important -- gameplay has changed.<br>';
-			$headers = $headers . 'Now you buzz in first, then get a chance to answer.<br><br>';
+			$headers = 'Welcome to Qub.<br><br>There\'s a new feature -- private games.<br>';
+			$headers = $headers . 'Go ahead and try it out! Please, no abuse.<br><br>';
 			$headers = $headers . 'Type \'help\' for help.<br>Type \'headers\' to see these messages again.';
 			$headers = $headers . '<br><br>Today is ' . date('F j, Y') . ', and the time is ' . date('g:i a') . '.';
 			
@@ -553,6 +603,20 @@ class QubApplication extends Application
 			}
 			
 			$headers = substr($headers,0,strlen($headers)-2);
+			$headers = $headers . '<br><br>Type \'headers\' to see these messages again.<br>';
+			
+			//Output Conditional Message For Password Protection
+			if (isset($this->_games[$gameNumber]['parameters']['password']))
+			{
+				$headers = $headers . 'Game Password: ' . $this->_games[$gameNumber]['parameters']['password'] . ' (Case Insensitive)';
+			}
+			
+			else
+			{
+				$headers = $headers . 'No password has been set for this game.';
+
+			}
+			
 			$headers = $headers . '<br><br>Game Length: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['length'])) . '<br>';
 			$headers = $headers . 'Game Type: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['type'])) . '<br>';
 			$headers = $headers . 'Game Level: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['level'])) . '<br>';
@@ -1389,12 +1453,21 @@ class QubApplication extends Application
 		$clientNick = $this->_nicknames[$clientID];
 		$data = explode(' ', $data);
 		
-		$help = 'This is the Qub user guide.<br>Please let me know if anything doesn\'t make sense.<br><br>';
+		$help = 'This is the Qub user guide. Commands do not use quotes.<br>Please let me know if anything doesn\'t make sense.<br><br>';
 		
 		$help = $help . 'To get into a game: Begin either by typing \'game\' or \'list\'. The former will start a game, ';
 		$help = $help . 'while the latter will list games in progress. To join a game in progress, type \'join\' followed ';
 		$help = $help . 'by the game\'s number. To start a game with a finite number of questions, type \'game\' followed ';
-		$help = $help . 'by the number of questions. Other options are currently in development and are disabled.<br><br>';
+		$help = $help . 'by the number of questions. More advanced game options are discussed below.<br><br>';
+		
+		$help = $help . 'To play private games: The format for creating a private game is the \'game\' command followed by ';
+		$help = $help . 'the game\'s length and then the word \'private\'. For example, to create an endless game, one ';
+		$help = $help . 'might type \'game endless private\'. The length parameter must appear, and has to be in the order ';
+		$help = $help . 'prescribed here. To join such a game, simply do as you would, appending the game\'s password ';
+		$help = $help . 'to your command, as in \'join 1 h12u9y\'. Someone in the game room must have previously shared ';
+		$help = $help . 'this password with you.<br><br>';
+		
+		$help = $help . 'Other game parameters are currently in development and are disabled.<br><br>';
 		
 		$help = $help . 'To play in a game: After you have entered a game room, a game may or may not be in progress. If a ';
 		$help = $help . 'question does not appear shortly, type \'start\' to try starting the game. Once questions begin to ';
@@ -1407,6 +1480,22 @@ class QubApplication extends Application
 		$help = $help . 'new desired nickname. The default nickname is \'Anonymous\'. Administrator nicknames are protected.<br>';
 		
 		$client->send($this->_encodeData('notice', $help));
+	}
+	
+	//Generate Random Passwords For Private Games
+	function _createPassword($length) 
+	{
+		$chars = "23456789abcdefghijkmnopqrstuvwxyz";
+		$maxlength = strlen($chars);
+		$i = 0; $password = "";
+
+		while ($i <= $length) 
+		{
+			$password .= substr($chars, mt_rand(0, $maxlength-1), 1);
+			$i++;
+		}
+		
+		return $password;
 	}
 }
 
