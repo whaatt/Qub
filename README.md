@@ -13,9 +13,13 @@ An Implementation of Multiplayer Quiz Bowl.
 
 ### File Notes
 - Client files are located in /client.
-- CSS/JS files are now located in /client/client for consistency.
+- CSS/JS files are now located in /client/assets.
 - Server files are located in /server.
-- Run server.php to start the server-side code.
+
+### Python Daemon
+- I added this as a safeguard against server shutdowns.
+- Daemon.py will restart the server automatically.
+- Run daemon.py to start the server-side code.
 
 ### Demo
 - See skalon.com/qub for a working implementation of this.

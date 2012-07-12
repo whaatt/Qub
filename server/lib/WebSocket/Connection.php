@@ -21,7 +21,6 @@ class Connection
 	public $waitingForData = false;
 	private $_dataBuffer = '';
 
-	private $country = false;
 
 	public function __construct($server, $socket)
     {
@@ -42,14 +41,6 @@ class Connection
     {	
         $this->log('Performing handshake');	    
         $lines = preg_split("/\r\n/", $data);
-		
-		//flash websocket policy file?
-        if (count($lines)  && preg_match('/<policy-file-request.*>/', $lines[0])) {
-        	$this->log('Serve flash policy: ' . $lines[0]);
-            $this->log('Flash policy file request');
-            $this->serveFlashPolicy();
-            return false;
-        }
 		
 		// check for valid http-header:
         if(!preg_match('/\AGET (\S+) HTTP\/1.1\z/', $lines[0], $matches))
@@ -132,7 +123,12 @@ class Connection
 		$response = "HTTP/1.1 101 Switching Protocols\r\n";
 		$response.= "Upgrade: websocket\r\n";
 		$response.= "Connection: Upgrade\r\n";
-		$response.= "Sec-WebSocket-Accept: " . $secAccept . "\r\n\r\n";
+		$response.= "Sec-WebSocket-Accept: " . $secAccept . "\r\n";
+		if(isset($headers['Sec-WebSocket-Protocol']) && !empty($headers['Sec-WebSocket-Protocol']))
+		{
+			$response.= "Sec-WebSocket-Protocol: " . substr($path, 1) . "\r\n";
+		}
+		$response.= "\r\n";
 		if(false === ($this->server->writeBuffer($this->socket, $response)))
 		{
 			return false;
@@ -218,6 +214,14 @@ class Connection
 		if($this->server->getApplication('status') !== false)
 		{
 			$this->server->getApplication('status')->clientActivity($this->port);
+		}
+		
+		if(!isset($data['type']))
+		{
+			$this->sendHttpResponse(401);
+			stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
+			$this->server->removeClientOnError($this);
+			return false;
 		}
 		
 		switch($decodedData['type'])
@@ -545,33 +549,5 @@ class Connection
 	public function getClientApplication()
 	{
 		return (isset($this->application)) ? $this->application : false;
-	}
-	
-	private function serveFlashPolicy()
-    {
-        $policy = '<?xml version="1.0"?>' . "\n";
-        $policy .= '<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">' . "\n";
-        $policy .= '<cross-domain-policy>' . "\n";
-        $policy .= '<allow-access-from domain="*" to-ports="*"/>' . "\n";
-        $policy .= '</cross-domain-policy>' . "\n\0";
-
-		if(!$this->server->writeBuffer($this->socket, $policy))
-		{
-			$this->server->removeClientOnError($this);
-			$this->log('We have a flash policy problem :(');
-			return false;
-		}
-		$this->log('File sent!');
-    }
-	
-	public function getClientCountry() {
-		if($this->country) {
-			return $this->country;
-		}
-		else {
-			$this->country = strtolower(geoip_country_code_by_name($this->ip));
-			return $this->country;
-		}
-		return '_world';
 	}
 }
