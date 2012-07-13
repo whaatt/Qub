@@ -5,7 +5,6 @@ date_default_timezone_set('America/New_York'); #Set Time Zone
 
 class QubApplication extends Application
 {
-
 	//Initialize Server State Variables
 	private $_clients = array();
 	private $_nicknames = array();
