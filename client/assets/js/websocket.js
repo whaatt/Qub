@@ -322,6 +322,11 @@ $(document).ready(function() {
 			data = data.split(' ');
 			data.shift();
 
+			if (action == 'answer')
+			{
+				return false;
+			}
+			
 			if (action == 'buzz')
 			{
 				if (hasAnswered)
