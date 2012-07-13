@@ -411,7 +411,7 @@ class QubApplication extends Application
 		}
 			
 		//Check If Game Is Empty	
-		if (count($this->_games[$currentLoc]['users']) == 0)
+		if (isset($this->_games[$currentLoc]) and count($this->_games[$currentLoc]['users']) == 0)
 		{
 			$this->_gameDestroy($currentLoc);
 		}
