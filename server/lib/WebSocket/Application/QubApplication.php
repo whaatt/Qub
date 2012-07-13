@@ -381,7 +381,7 @@ class QubApplication extends Application
 				
 			foreach ($usersID as $clientsID)
 			{
-				if ($clientsID != $clientID and !$disconnect)
+				if ($clientsID != $clientID)
 				{
 					$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem));
 				}
@@ -392,13 +392,6 @@ class QubApplication extends Application
 		else
 		{
 			array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.<br>');
-		}
-			
-		//Check If Game Is Empty	
-		if (count($this->_games[$currentLoc]['users']) == 0)
-		{
-			$this->_gameDestroy($currentLoc);
-			return true;
 		}
 		
 		//Works As If Leaving User Negged
@@ -415,6 +408,12 @@ class QubApplication extends Application
 		if (!$disconnect)
 		{
 			$this->_actionHeaders('', $client);
+		}
+			
+		//Check If Game Is Empty	
+		if (count($this->_games[$currentLoc]['users']) == 0)
+		{
+			$this->_gameDestroy($currentLoc);
 		}
 		
 		return true;
@@ -1160,13 +1159,7 @@ class QubApplication extends Application
 	
 	//Force Skip Externally
 	private function _gameSkip($gameNumber)
-	{	
-		//Make Sure Game Exists
-		if (!isset($this->_games[$gameNumber]))
-		{
-			return false;
-		}
-	
+	{
 		$isTaken = $this->_games[$gameNumber]['state']['isTaken'];
 		
 		//Make Sure Nobody Has Answered
@@ -1247,6 +1240,12 @@ class QubApplication extends Application
 	//Ping Externally
 	private function _gamePing($gameNumber)
 	{
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		//Reading Question State
 		if (isset($this->_games[$gameNumber]['state']['isReading']) and $this->_games[$gameNumber]['state']['isReading'])
 		{
@@ -1316,6 +1315,12 @@ class QubApplication extends Application
 	//Process Game Before Questions
 	private function _gameRun($gameNumber)
 	{
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		//Increment Question Number
 		$this->_games[$gameNumber]['state']['position'] += 1;
 		$length = $this->_games[$gameNumber]['parameters']['length'];
