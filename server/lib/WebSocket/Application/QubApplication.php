@@ -381,7 +381,7 @@ class QubApplication extends Application
 				
 			foreach ($usersID as $clientsID)
 			{
-				if ($clientsID != $clientID)
+				if ($clientsID != $clientID and !$disconnect)
 				{
 					$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem));
 				}
@@ -398,6 +398,7 @@ class QubApplication extends Application
 		if (count($this->_games[$currentLoc]['users']) == 0)
 		{
 			$this->_gameDestroy($currentLoc);
+			return true;
 		}
 		
 		//Works As If Leaving User Negged
@@ -1160,8 +1161,15 @@ class QubApplication extends Application
 	//Force Skip Externally
 	private function _gameSkip($gameNumber)
 	{	
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		$isTaken = $this->_games[$gameNumber]['state']['isTaken'];
 		
+		//Make Sure Nobody Has Answered
 		if ($isTaken)
 		{
 			return false;
