@@ -323,7 +323,8 @@ class QubApplication extends Application
 		//List Rooms
 		if (count($this->_games) != 0)
 		{
-			$list = 'Type \'join [number]\' to enter a particular game room.<br><br>';
+			$list = 'Type \'join number\' to enter a particular game room.<br>';
+			$list = $list . 'Type \'join number password\' to enter private rooms.<br><br>';
 			
 			foreach ($this->_games as $key => $value)
 			{
@@ -816,22 +817,20 @@ class QubApplication extends Application
 			return false;
 		}
 		
-		//Add Non-Duplicate Continues To Tracker
-		if (time() - $this->_games[$gameNumber]['state']['runTime'] >= 5 and $this->_games[$gameNumber]['state']['isNexted'])
+		//Check If Context Is Appropriate
+		//Change Time-Delta To 4 To Account For Lag
+		if (!(time() - $this->_games[$gameNumber]['state']['runTime'] >= 4 and $this->_games[$gameNumber]['state']['isNexted']))
 		{
-			if (!in_array($clientID, $this->_games[$gameNumber]['state']['continues']))
-			{
-			array_push($this->_games[$gameNumber]['state']['continues'], $clientID);
-			}
+			return false;
 		}
 		
 		else
 		{
-			return false;
+			$this->_games[$gameNumber]['state']['continues'] += 1;
 		}
-
+		
 		//Question Processing
-		if (count($this->_games[$gameNumber]['state']['continues']) >= count($this->_games[$gameNumber]['users']))
+		if ($this->_games[$gameNumber]['state']['continues'] > 0)
 		{	
 			$this->_games[$gameNumber]['state']['isContinued'] = true;
 		
@@ -1345,6 +1344,7 @@ class QubApplication extends Application
 		
 		//Initialize A Truckload Of State Variables
 		$this->_games[$gameNumber]['state']['runTime'] = 0;
+		$this->_games[$gameNumber]['state']['continues'] = 0;
 		$this->_games[$gameNumber]['state']['startTime'] = time();
 		$this->_games[$gameNumber]['state']['inQuestion'] = true;
 		$this->_games[$gameNumber]['state']['isReading'] = false;
@@ -1354,7 +1354,6 @@ class QubApplication extends Application
 		$this->_games[$gameNumber]['state']['answer'] = null;
 		$this->_games[$gameNumber]['state']['question'] = null;
 		$this->_games[$gameNumber]['state']['buzzer'] = null;
-		$this->_games[$gameNumber]['state']['continues'] = array();
 		$this->_games[$gameNumber]['state']['negs'] = array();
 		$this->_games[$gameNumber]['state']['correct'] = array();
 		
