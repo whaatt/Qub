@@ -324,6 +324,7 @@ $(document).ready(function() {
 
 			if (action == 'answer')
 			{
+				$('#prompt').val('');
 				return false;
 			}
 			
@@ -331,7 +332,7 @@ $(document).ready(function() {
 			{
 				if (hasAnswered)
 				{
-					$('#prompt').val();
+					$('#prompt').val('');
 					return false;
 				}
 			}
