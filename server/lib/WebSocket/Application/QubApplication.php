@@ -868,6 +868,12 @@ class QubApplication extends Application
 	//Force Continue Externally
 	private function _gameContinue($gameNumber)
 	{
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		if ($this->_games[$gameNumber]['state']['isContinued'])
 		{
 			return false;
@@ -1160,6 +1166,12 @@ class QubApplication extends Application
 	//Force Skip Externally
 	private function _gameSkip($gameNumber)
 	{
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		$isTaken = $this->_games[$gameNumber]['state']['isTaken'];
 		
 		//Make Sure Nobody Has Answered
@@ -1436,6 +1448,12 @@ class QubApplication extends Application
 	//Externally Initiate Next Request
 	private function _gameNext($gameNumber)
 	{
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
 		$this->_games[$gameNumber]['state']['runTime'] = time();
 		$this->_games[$gameNumber]['state']['isNexted'] = true;
@@ -1453,6 +1471,12 @@ class QubApplication extends Application
 	//Delete Game From Master List
 	private function _gameDestroy($gameNumber)
 	{
+		//Make Sure Game Exists
+		if (!isset($this->_games[$gameNumber]))
+		{
+			return false;
+		}
+	
 		unset($this->_games[$gameNumber]);
 		return true;
 	}
