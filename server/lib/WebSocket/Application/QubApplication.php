@@ -394,6 +394,13 @@ class QubApplication extends Application
 			array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.<br>');
 		}
 		
+		$this->_locations[$clientID] = 'main';
+		
+		if (!$disconnect)
+		{
+			$this->_actionHeaders('', $client);
+		}
+		
 		//Works As If Leaving User Negged
 		if (isset($this->_games[$currentLoc]['state']['isReading']) and $this->_games[$currentLoc]['state']['isReading'])
 		{
@@ -401,13 +408,6 @@ class QubApplication extends Application
 			{
 				$this->_gameSkip($currentLoc);
 			}
-		}
-		
-		$this->_locations[$clientID] = 'main';
-		
-		if (!$disconnect)
-		{
-			$this->_actionHeaders('', $client);
 		}
 			
 		//Check If Game Is Empty	
