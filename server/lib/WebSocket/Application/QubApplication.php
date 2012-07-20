@@ -818,7 +818,10 @@ class QubApplication extends Application
 		
 		//Check If Context Is Appropriate
 		//Change Time-Delta To 4 To Account For Lag
-		if (!(time() - $this->_games[$gameNumber]['state']['runTime'] >= 4 and $this->_games[$gameNumber]['state']['isNexted']))
+		//Temporarily Changed A Bug-Fix
+		
+		//if (!(time() - $this->_games[$gameNumber]['state']['runTime'] >= 4 and $this->_games[$gameNumber]['state']['isNexted']))
+		if (!$this->_games[$gameNumber]['state']['isNexted'])
 		{
 			return false;
 		}

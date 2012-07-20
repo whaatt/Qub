@@ -337,6 +337,15 @@ $(document).ready(function() {
 				}
 			}
 			
+			if (action == 'continue')
+			{
+				if (!isFinWaited)
+				{
+					$('#prompt').val('');
+					return false;
+				}
+			}
+			
 			if (isAnswering)
 			{
 				action = 'answer';
