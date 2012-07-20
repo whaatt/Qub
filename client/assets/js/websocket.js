@@ -35,7 +35,7 @@ function read(words){
 		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
 		
 		wordsPos += 1;
-		setTimeout(function(){ read(words); }, 350);
+		$.doTimeout(350, function(){ read(words); });
 	}
 	
 	//Skip At End
@@ -48,7 +48,7 @@ function read(words){
 	
 	//Check If End Has Come
 	if (startPos == words.length){
-		setTimeout(skip, 5000);
+		$.doTimeout(5000, skip);
 	}
 }
 
@@ -193,7 +193,7 @@ function handle(response) {
 			break;
 		case 'finish':
 			function switchScreen() { $('#log').html(''); $('#prompt').val('headers'); $('#command').submit(); }
-			setTimeout(switchScreen, 5000);
+			$.doTimeout(5000, switchScreen);
 			break;
 		case 'leave':
 			hasLeft = true;
@@ -264,7 +264,7 @@ function handle(response) {
 			hasBuzzed = true; isReading = false;
 			$('#qs').append('<span style=\'color: yellow;\'>Buzz!! </span>'); isAnswering = true;
 			function timeOut() { if (hasAnswered == false) { $('#prompt').val('answer'); $('#command').submit(); } }
-			setTimeout(timeOut, 9000);
+			$.doTimeout(9000, timeOut);
 			break;
 		case 'wait':
 			if (!isWaited){
@@ -282,7 +282,7 @@ function handle(response) {
 				log('Input temporarily disabling.', 'green', false);
 				$('#prompt').attr('disabled', true);
 				cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
-				setTimeout(cont, 5000);
+				$.doTimeout(5000, cont);
 			}
 			break;
 		default:
