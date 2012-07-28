@@ -102,7 +102,7 @@ class QubApplication extends Application
 		//Command Not Found
 		else
 		{
-			$client->send($this->_encodeData('default', 'Command ' . $actionNameWO . ' not found.<br>Type \'help\' for help.<br>'));
+			$client->send($this->_encodeData('default', 'Command ' . $actionNameWO . ' not found.<br>Type <i>help</i> for help.<br>'));
 		}
 	}
 	
@@ -346,8 +346,8 @@ class QubApplication extends Application
 		//List Rooms
 		if (count($this->_games) != 0)
 		{
-			$list = 'Type \'join number\' to enter a particular game room.<br>';
-			$list = $list . 'Type \'join number password\' to enter private rooms.<br><br>';
+			$list = 'Type <i>join number</i> to enter a particular game room.<br>';
+			$list = $list . 'Type <i>join number password</i> to enter private rooms.<br><br>';
 			
 			foreach ($this->_games as $key => $value)
 			{
@@ -365,7 +365,7 @@ class QubApplication extends Application
 		//No Games Found
 		else
 		{
-			$list = 'No games found! You can start a game using the \'game\' command.<br>';
+			$list = 'No games found! You can start a game using the <i>game</i> command.<br>';
 		}
 		
 		$client->send($this->_encodeData('list', $list));
@@ -600,7 +600,7 @@ class QubApplication extends Application
 		{
 			$headers = 'Welcome to Qub.<br><br>Just implemented -- multiple difficulties!<br>';
 			$headers = $headers . 'Check out the help for details on how to use this.<br><br>';
-			$headers = $headers . 'Type \'help\' for help.<br>Type \'headers\' to see these messages again.';
+			$headers = $headers . 'Type <i>help</i> for help.<br>Type <i>headers</i> to see these messages again.';
 			$headers = $headers . '<br><br>Today is ' . date('F j, Y') . ', and the time is ' . date('g:i a') . '.';
 			
 			if (count($this->_clients) == 1)
@@ -627,7 +627,7 @@ class QubApplication extends Application
 			}
 			
 			$headers = substr($headers,0,strlen($headers)-2);
-			$headers = $headers . '<br><br>Type \'headers\' to see these messages again.<br>';
+			$headers = $headers . '<br><br>Type <i>headers</i> to see these messages again.<br>';
 			
 			//Output Conditional Message For Password Protection
 			if (isset($this->_games[$gameNumber]['parameters']['password']))
@@ -1089,7 +1089,7 @@ class QubApplication extends Application
 		{
 			array_push($this->_games[$gameNumber]['state']['negs'], array($clientID, $score));
 			$wrong = 'Your answer was incorrect. Please wait for the next question.<br>';
-			$wrong = $wrong . 'If the game does not continue within a minute or so, type \'ping\'.<br>';
+			$wrong = $wrong . 'If the game does not continue within a minute or so, type <i>ping</i>.<br>';
 			$client->send($this->_encodeData('wrong', $wrong));
 			
 			//See If Everyone Negged, Deal Appropriately
@@ -1518,37 +1518,37 @@ class QubApplication extends Application
 		$clientNick = $this->_nicknames[$clientID];
 		$data = explode(' ', $data);
 		
-		$help = 'This is the Qub user guide. Commands do not use quotes.<br>Please let me know if anything doesn\'t make sense.<br><br>';
+		$help = 'This is the official Qub user guide.<br>Please let me know if anything doesn\'t make sense.<br><br>';
 		
-		$help = $help . 'To get into a game: Begin either by typing \'game\' or \'list\'. The former will start a game, ';
-		$help = $help . 'while the latter will list games in progress. To join a game in progress, type \'join\' followed ';
-		$help = $help . 'by the game\'s number. To start a game with a finite number of questions, type \'game\' followed ';
+		$help = $help . 'To get into a game: Begin either by typing <i>game</i> or <i>list</i>. The former will start a game, ';
+		$help = $help . 'while the latter will list games in progress. To join a game in progress, type <i>join</i> followed ';
+		$help = $help . 'by the game\'s number. To start a game with a finite number of questions, type <i>game</i> followed ';
 		$help = $help . 'by the number of questions. More advanced game options are discussed below.<br><br>';
 		
-		$help = $help . 'To play private games: The format for creating a private game is the \'game\' command followed by ';
-		$help = $help . 'the game\'s length and then the word \'private\'. For example, to create an endless game, one ';
-		$help = $help . 'might type \'game endless private\'. The length parameter must appear, and has to be in the order ';
+		$help = $help . 'To play private games: The format for creating a private game is the <i>game</i> command followed by ';
+		$help = $help . 'the game\'s length and then the word <i>private</i>. For example, to create an endless game, one ';
+		$help = $help . 'might type <i>game endless private</i>. The length parameter must appear, and has to be in the order ';
 		$help = $help . 'prescribed here. To join such a game, simply do as you would, appending the game\'s password ';
-		$help = $help . 'to your command, as in \'join 1 h12u9y\'. Someone in the game room must have previously shared ';
+		$help = $help . 'to your command, as in <i>join 1 h12u9y</i>. Someone in the game room must have previously shared ';
 		$help = $help . 'this password with you.<br><br>';
 		
 		$help = $help . 'To play difficulties: The format for creating games with your selection of difficulty level is ';
-		$help = $help . 'the \'game\' command followed by the length parameter, the public/private parameter, and finally ';
+		$help = $help . 'the <i>game</i> command followed by the length parameter, the public/private parameter, and finally ';
 		$help = $help . 'your chosen difficulty level. All of the mentioned parameters must appear, and in order. For ';
 		$help = $help . 'example, to create a public game with twenty questions, College difficulty, you would type ';
-		$help = $help . '\'game 20 public college\'. The supported difficulties are \'HS\', \'MS\', and \'College\'.<br><br>';
+		$help = $help . '<i>game 20 public college</i>. The supported difficulties are <i>HS</i>, <i>MS</i>, and <i>College</i>.<br><br>';
 		
 		$help = $help . 'Other game parameters are currently in development and are disabled.<br><br>';
 		
 		$help = $help . 'To play in a game: After you have entered a game room, a game may or may not be in progress. If a ';
-		$help = $help . 'question does not appear shortly, type \'start\' to try starting the game. Once questions begin to ';
-		$help = $help . 'appear, you may type \'buzz\' to buzz in, and then your answer. Type \'leave\' to exit the game you ';
-		$help = $help . 'are playing. For game info, type \'headers\'. You will be partially guided through this in-game.<br><br>';
+		$help = $help . 'question does not appear shortly, type <i>start</i> to try starting the game. Once questions begin to ';
+		$help = $help . 'appear, you may type <i>buzz</i> to buzz in, and then your answer. Type <i>leave</i> to exit the game you ';
+		$help = $help . 'are playing. For game info, type <i>headers</i>. You will be partially guided through this in-game.<br><br>';
 		
 		$help = $help . 'To chat with other players: Chatting to everybody in the main lobby or game rooms is as simple as ';
-		$help = $help . 'typing \'chat\' followed by your message. To private message (PM) someone, type \'pm\' followed by ';
-		$help = $help . 'the user\'s nickname and then your message. To change your nickname, type \'nick\' followed by your ';
-		$help = $help . 'new desired nickname. The default nickname is \'Anonymous\'. Administrator nicknames are protected.<br>';
+		$help = $help . 'typing <i>chat</i> followed by your message. To private message (PM) someone, type <i>pm</i> followed by ';
+		$help = $help . 'the user\'s nickname and then your message. To change your nickname, type <i>nick</i> followed by your ';
+		$help = $help . 'new desired nickname. The default nickname is <i>Anonymous</i>. Administrator nicknames are protected.<br>';
 		
 		$client->send($this->_encodeData('notice', $help));
 	}

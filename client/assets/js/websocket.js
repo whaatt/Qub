@@ -270,7 +270,7 @@ function handle(response) {
 			if (!isWaited){
 				isWaited = true;
 				log(response.data, 'blue', false);
-				var nextText = 'Type \'next\' to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
+				var nextText = 'Type <i>next</i> to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
 				nextText = nextText + 'You are guaranteed two minutes of wait time.';
 				log(nextText, 'green', false);
 			}
