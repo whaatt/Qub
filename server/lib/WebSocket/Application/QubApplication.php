@@ -93,7 +93,7 @@ class QubApplication extends Application
 		if(method_exists($this, $actionName))
 		{			
 			$actionOut = 'User ' . $this->_nicknames[$clientID] . ' performed ' . $actionNameWO . '. ';
-			$memoryOut = 'Current memory usage is ' . strval(memory_get_usage()) . ".";
+			$memoryOut = 'Current memory usage is ' . strval(memory_get_usage()) . '.';
 			$logOut = $actionOut . $memoryOut . PHP_EOL;
 			
 			echo ($logOut); call_user_func(array($this, $actionName), $decodedData, $client);
@@ -236,14 +236,37 @@ class QubApplication extends Application
 			$this->_games[$gameNumber]['parameters']['type'] = 'public';
 		}
 		
+		//Set Difficulty Level
 		if (isset($data[2]))
 		{
-			switch($data[2])
+			switch(strtolower($data[2]))
+			{
+				case 'hs':
+					$this->_games[$gameNumber]['parameters']['difficulty'] = 'HS'; break;
+				case 'ms':
+					$this->_games[$gameNumber]['parameters']['difficulty'] = 'MS'; break;
+				case 'college':
+					$this->_games[$gameNumber]['parameters']['difficulty'] = 'College'; break;
+				default:
+					$defaults .= 'Invalid game difficulty selected. Defaulting to HS difficulty.<br>';
+					$this->_games[$gameNumber]['parameters']['difficulty'] = 'HS'; break;
+			}
+		}
+		else
+		{
+			$defaults .= 'Invalid game difficulty selected. Defaulting to HS difficulty.<br>';
+			$this->_games[$gameNumber]['parameters']['difficulty'] = 'HS';
+		}
+		
+		//Set Competitive or Friendly Game
+		if (isset($data[3]))
+		{
+			switch($data[3])
 			{
 				case 'friendly':
 					$this->_games[$gameNumber]['parameters']['level'] = 'friendly'; break;
 				default:
-					if ($data[2] == 'competitive'){ $defaults .= 'Competitive games are not supported at this time.<br>'; }
+					if ($data[3] == 'competitive'){ $defaults .= 'Competitive games are not supported at this time.<br>'; }
 					else { $defaults .= 'Invalid game level selected. Defaulting to Friendly level.<br>'; }
 					$this->_games[$gameNumber]['parameters']['level'] = 'friendly'; break;
 			}
@@ -254,14 +277,15 @@ class QubApplication extends Application
 			$this->_games[$gameNumber]['parameters']['level'] = 'friendly';
 		}
 		
-		if (isset($data[3]))
+		//Set Team or Solo Game
+		/*if (isset($data[4]))
 		{
-			switch($data[3])
+			switch($data[4])
 			{
 				case 'solo':
 					$this->_games[$gameNumber]['parameters']['style'] = 'solo'; break;
 				default:
-					if ($data[3] == 'team'){ $defaults .= 'Team games are not supported at this time.<br>'; }
+					if ($data[4] == 'team'){ $defaults .= 'Team games are not supported at this time.<br>'; }
 					else { $defaults .= 'Invalid game style selected. Defaulting to Solo style.<br>'; }
 					$this->_games[$gameNumber]['parameters']['style'] = 'solo'; break;
 			}
@@ -270,7 +294,7 @@ class QubApplication extends Application
 		{ 
 			$defaults .= 'Invalid game style selected. Defaulting to Solo style.<br>';
 			$this->_games[$gameNumber]['parameters']['style'] = 'solo';
-		}
+		}*/
 		
 		$client->send($this->_encodeData('notice', $defaults));
 		$this->_actionHeaders('', $client);
@@ -574,8 +598,8 @@ class QubApplication extends Application
 		
 		if ($this->_locations[$clientID] == 'main')
 		{
-			$headers = 'Welcome to Qub.<br><br>There\'s a new feature -- private games.<br>';
-			$headers = $headers . 'Go ahead and try it out! Please, no abuse.<br><br>';
+			$headers = 'Welcome to Qub.<br><br>Just implemented -- multiple difficulties!<br>';
+			$headers = $headers . 'Check out the help for details on how to use this.<br><br>';
 			$headers = $headers . 'Type \'help\' for help.<br>Type \'headers\' to see these messages again.';
 			$headers = $headers . '<br><br>Today is ' . date('F j, Y') . ', and the time is ' . date('g:i a') . '.';
 			
@@ -619,8 +643,9 @@ class QubApplication extends Application
 			
 			$headers = $headers . '<br><br>Game Length: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['length'])) . '<br>';
 			$headers = $headers . 'Game Type: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['type'])) . '<br>';
+			$headers = $headers . 'Game Difficulty: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['difficulty'])) . '<br>';
 			$headers = $headers . 'Game Level: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['level'])) . '<br>';
-			$headers = $headers . 'Game Style: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['style'])) . '<br>';
+			//$headers = $headers . 'Game Style: ' . ucfirst(strval($this->_games[$gameNumber]['parameters']['style'])) . '<br>';
 		}
 		
 		$client->send($this->_encodeData('headers', $headers));
@@ -836,7 +861,8 @@ class QubApplication extends Application
 		{	
 			$this->_games[$gameNumber]['state']['isContinued'] = true;
 		
-			$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=HS&params[random]=true';
+			$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
+			$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
 			$questionInfo = json_decode(file_get_contents($URI));
 			
 			$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
@@ -884,7 +910,8 @@ class QubApplication extends Application
 	
 		$this->_games[$gameNumber]['state']['isContinued'] = true;
 	
-		$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=HS&params[random]=true';
+		$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
+		$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
 		$questionInfo = json_decode(file_get_contents($URI));
 		
 		$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
@@ -1505,6 +1532,12 @@ class QubApplication extends Application
 		$help = $help . 'to your command, as in \'join 1 h12u9y\'. Someone in the game room must have previously shared ';
 		$help = $help . 'this password with you.<br><br>';
 		
+		$help = $help . 'To play difficulties: The format for creating games with your selection of difficulty level is ';
+		$help = $help . 'the \'game\' command followed by the length parameter, the public/private parameter, and finally ';
+		$help = $help . 'your chosen difficulty level. All of the mentioned parameters must appear, and in order. For ';
+		$help = $help . 'example, to create a public game with twenty questions, College difficulty, you would type ';
+		$help = $help . '\'game 20 public college\'. The supported difficulties are \'HS\', \'MS\', and \'College\'.<br><br>';
+		
 		$help = $help . 'Other game parameters are currently in development and are disabled.<br><br>';
 		
 		$help = $help . 'To play in a game: After you have entered a game room, a game may or may not be in progress. If a ';
@@ -1523,9 +1556,9 @@ class QubApplication extends Application
 	//Generate Random Passwords For Private Games
 	function _createPassword($length) 
 	{
-		$chars = "23456789abcdefghijkmnopqrstuvwxyz";
+		$chars = '23456789abcdefghijkmnopqrstuvwxyz';
 		$maxlength = strlen($chars);
-		$i = 0; $password = "";
+		$i = 0; $password = '';
 
 		while ($i <= $length) 
 		{
