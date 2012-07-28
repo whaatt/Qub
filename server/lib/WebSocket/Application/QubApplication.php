@@ -355,8 +355,8 @@ class QubApplication extends Application
 				
 				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['type']));
 				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['length']));
+				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['difficulty']));
 				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['level']));
-				$list = $list . ' - ' . ucfirst(strval($this->_games[$key]['parameters']['style']));
 				
 				$list = $list . '<br>';
 			}
