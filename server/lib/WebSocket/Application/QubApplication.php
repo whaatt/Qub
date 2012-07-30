@@ -862,7 +862,7 @@ class QubApplication extends Application
 			$this->_games[$gameNumber]['state']['isContinued'] = true;
 		
 			$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
-			$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
+			$URI = 'http://23.23.188.247/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
 			@$questionURI = file_get_contents($URI);
 			
 			if ($questionURI === False){
@@ -927,7 +927,7 @@ class QubApplication extends Application
 		$this->_games[$gameNumber]['state']['isContinued'] = true;
 	
 		$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
-		$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
+		$URI = 'http://23.23.188.247/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
 		@$questionURI = file_get_contents($URI);
 			
 		if ($questionURI === False){
@@ -1065,7 +1065,7 @@ class QubApplication extends Application
 		
 		$correct = urlencode($this->_games[$gameNumber]['state']['answer']);
 		
-		$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/answer.check?canon=' . $correct . '&answer=' . $answer;
+		$URI = 'http://23.23.188.247/api/answer.check?canon=' . $correct . '&answer=' . $answer;
 		$isRight = json_decode(file_get_contents($URI))->value; #Check Answer Validity
 		
 		//Echo Stats And Display For Correct Answers
