@@ -228,6 +228,17 @@ function handle(response) {
 				$('#prompt').removeAttr('disabled');
 			}
 			break;
+		case 'reset':
+			postProcess();
+			isWaited = false;
+			isFinWaited = false;
+			isDisplayed = true;
+			hasAnswered = true;
+			isAnswering = false;
+			hasBuzzed = false;
+			isReading = false;
+			$('#prompt').removeAttr('disabled');
+			break;
 		case 'stats':
 			if (!isStat && isJoined){
 				isStat = true;

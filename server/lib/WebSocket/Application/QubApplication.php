@@ -863,7 +863,23 @@ class QubApplication extends Application
 		
 			$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
 			$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
-			$questionInfo = json_decode(file_get_contents($URI));
+			@$questionURI = file_get_contents($URI);
+			
+			if ($questionURI === False){
+				$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+			
+				foreach ($usersID as $clientsID)
+				{
+					$error = 'Unable to fetch question from QuizbowlDB.<br>That site may currently be down for work.<br>';
+					$this->_clients[$clientsID]->send($this->_encodeData('notice', $error));
+					$this->_clients[$clientsID]->send($this->_encodeData('reset', ''));
+				}
+				
+				$this->_gameRun($gameNumber);
+				return False;
+			}
+			
+			$questionInfo = json_decode($questionURI);
 			
 			$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
 			$this->_games[$gameNumber]['state']['answer'] = $questionInfo->results[0]->answer;
@@ -912,7 +928,23 @@ class QubApplication extends Application
 	
 		$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
 		$URI = 'http://ec2-107-20-11-96.compute-1.amazonaws.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
-		$questionInfo = json_decode(file_get_contents($URI));
+		@$questionURI = file_get_contents($URI);
+			
+		if ($questionURI === False){
+			$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
+		
+			foreach ($usersID as $clientsID)
+			{
+				$error = 'Unable to fetch question from QuizbowlDB.<br>That site may currently be down for work.<br>';
+				$this->_clients[$clientsID]->send($this->_encodeData('notice', $error));
+				$this->_clients[$clientsID]->send($this->_encodeData('reset', ''));
+			}	
+			
+			$this->_gameRun($gameNumber);
+			return False;
+		}
+		
+		$questionInfo = json_decode($questionURI);
 		
 		$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
 		$this->_games[$gameNumber]['state']['answer'] = $questionInfo->results[0]->answer;
