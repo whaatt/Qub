@@ -274,8 +274,8 @@ function handle(response) {
 		case 'sbuzz':
 			hasBuzzed = true; isReading = false;
 			$('#qs').append('<span style=\'color: yellow;\'>Buzz!! </span>'); isAnswering = true;
-			function timeOut() { if (hasAnswered == false) { $('#prompt').val('answer'); $('#command').submit(); } }
-			$.doTimeout(9000, timeOut);
+			function timeUp() { if (hasAnswered == false) { $('#prompt').val('User Negged'); $('#command').submit(); } }
+			$.doTimeout(9000, timeUp);
 			break;
 		case 'wait':
 			if (!isWaited){
@@ -332,7 +332,7 @@ $(document).ready(function() {
 			var data = typed
 			data = data.split(' ');
 			data.shift();
-
+			
 			if (action == 'answer')
 			{
 				$('#prompt').val('');
