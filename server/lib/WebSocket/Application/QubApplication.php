@@ -747,7 +747,7 @@ class QubApplication extends Application
 			return false;
 		}
 		
-		if(in_array($nick, $this->_nicknames) and $nick != 'Anonymous')
+		if(in_array($nick, $this->_nicknames) or strtolower($nick) == 'anonymous')
 		{
 			$client->send($this->_encodeData('notice', 'Sorry, your chosen nickname is already in use.'));
 			return false;
