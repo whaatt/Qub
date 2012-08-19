@@ -23,6 +23,15 @@ function postProcess(){
 	$('#scroll2').hide();
 }
 
+
+//Skip At End
+function skip() {
+	if (!hasBuzzed){
+		hasBuzzed = true;
+		$('#prompt').val('skip ' + wordsPos.toString()); $('#command').submit();
+	}
+}
+
 //Read Questions Recursively
 function read(words){
 	var startPos = wordsPos;
@@ -38,17 +47,10 @@ function read(words){
 		$.doTimeout(350, function(){ read(words); });
 	}
 	
-	//Skip At End
-	function skip() {
-		if (!hasBuzzed){
-			hasBuzzed = true;
-			$('#prompt').val('skip ' + wordsPos.toString()); $('#command').submit();
-		}
-	}
-	
 	//Check If End Has Come
 	if (startPos == words.length){
-		$.doTimeout(5000, skip);
+		isFinished = true;
+		$.doTimeout('finished', 5000, skip);
 	}
 }
 
@@ -246,7 +248,7 @@ function handle(response) {
 			}
 			break;
 		case 'question':
-			hasBuzzed = false; hasAnswered = false; 
+			hasBuzzed = false; hasAnswered = false; isFinished = false;
 			hasLeft = false; isReading = true; isStat = false;
 			isDisplayed = false; isWronged = false; isJoined = true;
 			wordsPos = 0; lastQuestion = response.data;
@@ -255,6 +257,10 @@ function handle(response) {
 			break;
 		case 'read':
 			if (!hasAnswered && !isReading && !isAnswering){
+				if (isFinished){
+					$.doTimeout('finished', 5000, skip);
+				}
+				
 				hasBuzzed = false;
 				isReading = true;
 				$('#buzz').remove();
@@ -266,12 +272,20 @@ function handle(response) {
 			hasBuzzed = true;
 			if (hasAnswered == false)
 			{
+				if (isFinished){
+					$.doTimeout('finished'); //Cancel end timeout
+				}
+				
 				isReading = false;
 				$('#qs').append('<span id=\'buzz\' style=\'color: yellow;\'>Buzz!! </span>');
 				$('#prompt').attr('disabled', true);
 			}
 			break;
 		case 'sbuzz':
+			if (isFinished){
+				$.doTimeout('finished'); //Cancel end timeout
+			}
+			
 			hasBuzzed = true; isReading = false;
 			$('#qs').append('<span style=\'color: yellow;\'>Buzz!! </span>'); isAnswering = true;
 			function timeUp() { if (hasAnswered == false) { $('#prompt').val('User Negged'); $('#command').submit(); } }
@@ -391,6 +405,7 @@ var isDisplayed = false;
 var isWronged = false;
 var isWaited = false
 var isFinWaited = false;
+var isFinished = false;
 var isJoined = false;
 var isStat = false;
 var hasLeft = false;
