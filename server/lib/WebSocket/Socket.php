@@ -49,9 +49,11 @@ class Socket
 		{
 			$this->applySSLContext();
 		}
-		if(!$this->master = stream_socket_server($url, $errno, $err, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $this->context))
+		if(!$this->master = @stream_socket_server($url, $errno, $err, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $this->context))
 		{
-			die('Error creating socket: ' . $err);
+			echo('Error creating socket: ' . $err . '.' . PHP_EOL);
+			return 0;
+			
 		}		
 		
 		$this->allsockets[] = $this->master;

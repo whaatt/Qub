@@ -899,8 +899,10 @@ class QubApplication extends Application
 			
 			foreach ($usersID as $clientsID)
 			{
-				$this->_clients[$clientsID]->send($this->_encodeData('notice', $info));
-				$this->_clients[$clientsID]->send($this->_encodeData('question', $question));
+				if (isset($this->_clients[$clientsID])){
+					$this->_clients[$clientsID]->send($this->_encodeData('notice', $info));
+					$this->_clients[$clientsID]->send($this->_encodeData('question', $question));
+				}
 			}
 			
 			$this->_games[$gameNumber]['state']['runTime'] = time();
@@ -964,8 +966,10 @@ class QubApplication extends Application
 		
 		foreach ($usersID as $clientsID)
 		{
-			$this->_clients[$clientsID]->send($this->_encodeData('notice', $info));
-			$this->_clients[$clientsID]->send($this->_encodeData('question', $question));
+			if (isset($this->_clients[$clientsID])){
+				$this->_clients[$clientsID]->send($this->_encodeData('notice', $info));
+				$this->_clients[$clientsID]->send($this->_encodeData('question', $question));
+			}
 		}
 		
 		$this->_games[$gameNumber]['state']['runTime'] = time();
