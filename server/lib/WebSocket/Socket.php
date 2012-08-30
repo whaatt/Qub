@@ -51,8 +51,7 @@ class Socket
 		}
 		if(!$this->master = @stream_socket_server($url, $errno, $err, STREAM_SERVER_BIND|STREAM_SERVER_LISTEN, $this->context))
 		{
-			echo('Error creating socket: ' . $err . '.' . PHP_EOL);
-			return 0;
+			die('Error creating socket: ' . $err . '.' . PHP_EOL);
 			
 		}		
 		
