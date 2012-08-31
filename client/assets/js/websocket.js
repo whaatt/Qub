@@ -303,10 +303,11 @@ function handle(response) {
 		case 'finWait':
 			if (!isFinWaited){
 				isFinWaited = true;
+				isDisabled = true;
 				log(response.data, 'green', false);
 				log('Input temporarily disabling.', 'green', false);
 				$('#prompt').attr('disabled', true);
-				cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
+				cont = function() { $('#prompt').val('continue'); $('#command').submit(); isDisabled = false; }
 				$.doTimeout(5000, cont);
 			}
 			break;
@@ -332,6 +333,13 @@ $(document).ready(function() {
 		}
 	});
 
+	//Deal With Backspace During Disable
+	$(document).keydown(function(){
+		if (event.keyCode == 8 && isDisabled) {
+			event.preventDefault();
+		}
+	});
+	
 	//Submit Command, Parsed
 	$('#command').submit(function() {
 		var typed = $('#prompt').val();
@@ -407,6 +415,7 @@ var isWaited = false
 var isFinWaited = false;
 var isFinished = false;
 var isJoined = false;
+var isDisabled = false;
 var isStat = false;
 var hasLeft = false;
 
