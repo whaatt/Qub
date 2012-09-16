@@ -40,7 +40,6 @@ function read(words){
 		$('#scroll').hide()
 		$('#scroll2').show()
 		
-		$('#prompt').removeAttr('disabled');
 		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
 		$('#qs').animate({ scrollTop: $('#qs').attr('scrollHeight') }, 'slow');
 		
@@ -264,8 +263,12 @@ function handle(response) {
 				
 				hasBuzzed = false;
 				isReading = true;
+				
 				$('#buzz').remove();
 				$('#prompt').removeAttr('disabled');
+				$('#prompt').focus();
+				
+				isDisabled = false;
 				read(globalWords);
 			}
 			break;
@@ -308,7 +311,7 @@ function handle(response) {
 				log(response.data, 'green', false);
 				log('Input temporarily disabling.', 'green', false);
 				$('#prompt').attr('disabled', true);
-				cont = function() { $('#prompt').val('continue'); $('#command').submit(); isDisabled = false; }
+				cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
 				$.doTimeout(5000, cont);
 			}
 			break;
