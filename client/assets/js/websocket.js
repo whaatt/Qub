@@ -42,6 +42,7 @@ function read(words){
 		
 		$('#prompt').removeAttr('disabled');
 		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
+		$('#qs').animate({ scrollTop: $('#qs').attr('scrollHeight') }, 'slow');
 		
 		wordsPos += 1;
 		$.doTimeout(350, function(){ read(words); });
@@ -321,7 +322,7 @@ function handle(response) {
 $(document).ready(function() {
 	//Pretty Scrollbar
 	$('#log').slimScroll({ color: '#444', alwaysVisible: true, start: 'bottom', distance: 3, height: 280 });
-	$('#qs').slimScroll({ color: '#444', alwaysVisible: true, start: 'bottom', distance: 3, height: 280 });
+	$('#qs').slimScroll({ color: '#444', alwaysVisible: false, start: 'bottom', distance: 3, height: 280 });
 
 	if(!initialized){ initialize(); }
 	
@@ -334,7 +335,7 @@ $(document).ready(function() {
 	});
 
 	//Deal With Backspace During Disable
-	$(document).keydown(function(){
+	$(document).keydown(function(event){
 		if (event.keyCode == 8 && isDisabled) {
 			event.preventDefault();
 		}
