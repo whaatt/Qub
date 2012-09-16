@@ -34,11 +34,9 @@ function skip() {
 
 //Read Questions Recursively
 function read(words){
-	var startPos = wordsPos;
-	
 	if (wordsPos < words.length && !hasBuzzed && !hasLeft && !hasAnswered){
-		$('#scroll').hide()
-		$('#scroll2').show()
+		$('#prompt').removeAttr('disabled');
+		$('#prompt').focus(); isDisabled = false;
 		
 		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
 		$('#qs').animate({ scrollTop: $('#qs').attr('scrollHeight') }, 'slow');
@@ -48,7 +46,10 @@ function read(words){
 	}
 	
 	//Check If End Has Come
-	if (startPos == words.length){
+	if (wordsPos == words.length){
+		$('#prompt').removeAttr('disabled');
+		$('#prompt').focus(); isDisabled = false;
+	
 		isFinished = true;
 		$.doTimeout('finished', 5000, skip);
 	}
@@ -251,24 +252,20 @@ function handle(response) {
 			hasBuzzed = false; hasAnswered = false; isFinished = false;
 			hasLeft = false; isReading = true; isStat = false;
 			isDisplayed = false; isWronged = false; isJoined = true;
+			
+			$('#scroll').hide();
+			$('#scroll2').show();
+		
 			wordsPos = 0; lastQuestion = response.data;
 			globalWords = response.data.split(' ');
 			read(globalWords);
 			break;
 		case 'read':
 			if (!hasAnswered && !isReading && !isAnswering){
-				if (isFinished){
-					$.doTimeout('finished', 5000, skip);
-				}
-				
-				hasBuzzed = false;
-				isReading = true;
-				
 				$('#buzz').remove();
-				$('#prompt').removeAttr('disabled');
-				$('#prompt').focus();
+				hasBuzzed = false;
 				
-				isDisabled = false;
+				isReading = true;
 				read(globalWords);
 			}
 			break;
@@ -281,6 +278,8 @@ function handle(response) {
 				}
 				
 				isReading = false;
+				isDisabled = true;
+				
 				$('#qs').append('<span id=\'buzz\' style=\'color: yellow;\'>Buzz!! </span>');
 				$('#prompt').attr('disabled', true);
 			}
