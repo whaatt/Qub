@@ -365,7 +365,7 @@ class QubApplication extends Application
 		//No Games Found
 		else
 		{
-			$list = 'No games found! You can start a game using the <i>game</i> command.<br>';
+			$list = 'No games currently in progress!<br>Start a game by typing <i>game</i>.<br>';
 		}
 		
 		$client->send($this->_encodeData('list', $list));
@@ -415,7 +415,7 @@ class QubApplication extends Application
 		//Otherwise, Enqueue The Leave
 		else
 		{
-			array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.<br>');
+			array_push($this->_games[$currentLoc]['lqueue'], 'User ' . $clientNick . ' has left the room.');
 		}
 		
 		$this->_locations[$clientID] = 'main';
@@ -560,14 +560,14 @@ class QubApplication extends Application
 			{
 				if ($entry[0] == $clientID)
 				{
-					$this->_games[intval($data[0])-1]['equeue'][$key] = array($clientID, 'User ' . $clientNick . ' has entered the room.<br>');
+					$this->_games[intval($data[0])-1]['equeue'][$key] = array($clientID, 'User ' . $clientNick . ' has entered the room.');
 					$isIn = true;
 				}
 			}
 			
 			if(!$isIn)
 			{
-				array_push($this->_games[intval($data[0])-1]['equeue'], array($clientID, 'User ' . $clientNick . ' has entered the room.<br>'));
+				array_push($this->_games[intval($data[0])-1]['equeue'], array($clientID, 'User ' . $clientNick . ' has entered the room.'));
 			}
 		}
 
@@ -1193,6 +1193,13 @@ class QubApplication extends Application
 			return false;
 		}
 		
+		//Context Must Be Appropriate
+		if(!isset($this->_games[$gameNumber]['state']['isReading']) or !$this->_games[$gameNumber]['state']['isReading'])
+		{
+			$client->send($this->_encodeData('notice', 'This command does not apply now.<br>'));
+			return false;
+		}
+		
 		$isTaken = $this->_games[$gameNumber]['state']['isTaken'];
 		
 		//Question Must Not Be Taken Already
@@ -1449,14 +1456,30 @@ class QubApplication extends Application
 		
 		$hereLoc = 'game-' . strval($gameNumber);
 		
-		//Process Both Enqueues, Show Users Entering and Leaving
+		//Process Both Queues, Show Users Entering and Leaving
 		foreach ($usersID as $clientsID)
 		{
+			if (count($this->_games[$gameNumber]['lqueue']) > 0){
+				$this->_clients[$clientsID]->send($this->_encodeData('notice', ''));
+			}
+		
 			foreach ($this->_games[$gameNumber]['lqueue'] as $notItem)
 			{
 				$this->_clients[$clientsID]->send($this->_encodeData('notice', $notItem));
 			}
-		
+			
+			foreach ($this->_games[$gameNumber]['equeue'] as $notItem)
+			{	
+				if (isset($this->_clients[$notItem[0]]) and $this->_locations[$notItem[0]] == $hereLoc and !($length + 1 == $posTemp))
+				{
+					$actualEntry = 1;
+				}
+			}
+			
+			if (count($this->_games[$gameNumber]['equeue']) > 0 and isset($actualEntry)){
+				$this->_clients[$clientsID]->send($this->_encodeData('notice', ''));
+			}
+			
 			foreach ($this->_games[$gameNumber]['equeue'] as $notItem)
 			{	
 				if (isset($this->_clients[$notItem[0]]) and $this->_locations[$notItem[0]] == $hereLoc and !($length + 1 == $posTemp))

@@ -28,6 +28,7 @@ function postProcess(){
 function skip() {
 	if (!hasBuzzed){
 		hasBuzzed = true;
+		isAutomatic = true;
 		$('#prompt').val('skip ' + wordsPos.toString()); $('#command').submit();
 	}
 }
@@ -35,21 +36,15 @@ function skip() {
 //Read Questions Recursively
 function read(words){
 	if (wordsPos < words.length && !hasBuzzed && !hasLeft && !hasAnswered){
-		$('#prompt').removeAttr('disabled');
-		$('#prompt').focus(); isDisabled = false;
-		
-		$('#qs').append('<span style=\'color: purple;\'>' + words[wordsPos] + ' </span>');
+		$('#qs').append('<span style=\'color: #A000D2;\'>' + words[wordsPos] + ' </span>');
 		$('#qs').animate({ scrollTop: $('#qs').attr('scrollHeight') }, 'slow');
 		
 		wordsPos += 1;
-		$.doTimeout(350, function(){ read(words); });
+		$.doTimeout('reader', 350, function(){ read(words); });
 	}
 	
 	//Check If End Has Come
 	if (wordsPos == words.length){
-		$('#prompt').removeAttr('disabled');
-		$('#prompt').focus(); isDisabled = false;
-	
 		isFinished = true;
 		$.doTimeout('finished', 5000, skip);
 	}
@@ -86,38 +81,38 @@ function initialize() {
 function display(message) {
 	switch(message.action){
 		case 'nick':
-			log('Nickname change request sent.<br>', 'green', true);
+			log('Nickname change request sent.<br>', '#949700', true);
 			break;
 		case 'chat':
 			break;
 		case 'pm':
 			break;
 		case 'game':
-			log('New game request sent.<br>', 'green', true);
+			log('New game request sent.<br>', '#949700', true);
 			break;
 		case 'join':
-			log('Game join request sent.<br>', 'green', true);
+			log('Game join request sent.<br>', '#949700', true);
 			break;	
 		case 'leave':
-			log('Leave request sent.<br>', 'green', true);
+			log('Leave request sent.<br>', '#949700', true);
 			break;
 		case 'start':
-			log('Start request sent.<br>', 'green', true);
+			log('Start request sent.<br>', '#949700', true);
 			break;
 		case 'ping':
-			log('Ping request sent.<br>', 'green', true);
+			log('Ping request sent.<br>', '#949700', true);
 			break;
 		case 'help':
-			log('Help request sent.<br>', 'green', true);
+			log('Help request sent.<br>', '#949700', true);
 			break;
 		case 'status':
-			log('Status request sent.<br>', 'green', true);
+			log('Status request sent.<br>', '#949700', true);
 			break;
 		case 'headers':
-			log('Header request sent.<br>', 'green', true);
+			log('Header request sent.<br>', '#949700', true);
 			break;
 		case 'list':
-			log('List request sent.<br>', 'green', true);
+			log('List request sent.<br>', '#949700', true);
 			break;
 		case 'continue':
 			break;
@@ -131,8 +126,8 @@ function display(message) {
 			break;
 		default:
 			var data = clean(message.data)
-			if (data != '') { log('Command: ' + clean(message.action) + ' ' + data.join(' ') + '<br>', 'green', true); }
-			else { log('Command: ' + clean(message.action) + '<br>', 'green', true); }
+			if (data != '') { log('Command: ' + clean(message.action) + ' ' + data.join(' ') + '<br>', '#949700', true); }
+			else { log('Command: ' + clean(message.action) + '<br>', '#949700', true); }
 			break;
 	}
 }
@@ -146,7 +141,7 @@ initialized at the end of this script. */
 function handle(response) {
 	switch(response.action){
 		case 'headers':
-			log(response.data, 'blue', false);
+			log(response.data, '#006CDE', false);
 			break;
 		case 'chat':
 			var prev = $('#log').html();
@@ -213,7 +208,7 @@ function handle(response) {
 				isAnswering = false;
 				hasBuzzed = false;
 				isReading = false;
-				log(response.data, 'blue', false);
+				log(response.data, '#006CDE', false);
 				$('#prompt').focus();
 			}
 			break;
@@ -227,7 +222,8 @@ function handle(response) {
 				isAnswering = false;
 				hasBuzzed = false;
 				isReading = false;
-				log(lastQuestion + '<br>', 'purple', false);
+				isDisabled = false;
+				log(lastQuestion + '<br>', '#A000D2', false);
 				$('#prompt').removeAttr('disabled');
 			}
 			break;
@@ -240,6 +236,7 @@ function handle(response) {
 			isAnswering = false;
 			hasBuzzed = false;
 			isReading = false;
+			isDisabled = false;
 			$('#prompt').removeAttr('disabled');
 			break;
 		case 'stats':
@@ -256,6 +253,9 @@ function handle(response) {
 			$('#scroll').hide();
 			$('#scroll2').show();
 		
+			$('#prompt').removeAttr('disabled');
+			$('#prompt').focus(); isDisabled = false;
+		
 			wordsPos = 0; lastQuestion = response.data;
 			globalWords = response.data.split(' ');
 			read(globalWords);
@@ -264,6 +264,9 @@ function handle(response) {
 			if (!hasAnswered && !isReading && !isAnswering){
 				$('#buzz').remove();
 				hasBuzzed = false;
+				
+				$('#prompt').removeAttr('disabled');
+				$('#prompt').focus(); isDisabled = false;
 				
 				isReading = true;
 				read(globalWords);
@@ -277,6 +280,10 @@ function handle(response) {
 					$.doTimeout('finished'); //Cancel end timeout
 				}
 				
+				else{
+					$.doTimeout('reader'); //Cancel read timeout
+				}
+				
 				isReading = false;
 				isDisabled = true;
 				
@@ -287,6 +294,10 @@ function handle(response) {
 		case 'sbuzz':
 			if (isFinished){
 				$.doTimeout('finished'); //Cancel end timeout
+			}			
+		
+			else{
+				$.doTimeout('reader'); //Cancel read timeout
 			}
 			
 			hasBuzzed = true; isReading = false;
@@ -297,25 +308,25 @@ function handle(response) {
 		case 'wait':
 			if (!isWaited){
 				isWaited = true;
-				log(response.data, 'blue', false);
+				log(response.data, '#006CDE', false);
 				var nextText = 'Type <i>next</i> to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
 				nextText = nextText + 'You are guaranteed two minutes of wait time.';
-				log(nextText, 'green', false);
+				log(nextText, '#949700', false);
 			}
 			break;
 		case 'finWait':
 			if (!isFinWaited){
 				isFinWaited = true;
 				isDisabled = true;
-				log(response.data, 'green', false);
-				log('Input temporarily disabling.', 'green', false);
+				log(response.data, '#949700', false);
+				log('Input temporarily disabling.', '#949700', false);
 				$('#prompt').attr('disabled', true);
 				cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
 				$.doTimeout(5000, cont);
 			}
 			break;
 		default:
-			log(response.data, 'blue', false);
+			log(response.data, '#006CDE', false);
 			break;
 	}
 }
@@ -366,7 +377,7 @@ $(document).ready(function() {
 			
 			if (action == 'buzz')
 			{
-				if (hasAnswered)
+				if (hasAnswered || !isReading)
 				{
 					$('#prompt').val('');
 					return false;
@@ -382,6 +393,16 @@ $(document).ready(function() {
 				}
 			}
 			
+			if (action == 'skip' && !isAutomatic){
+				$('#prompt').val('');
+				return false;
+			}
+			
+			if (action == 'next' && !isWaited){
+				$('#prompt').val('');
+				return false;
+			}
+			
 			if (isAnswering)
 			{
 				action = 'answer';
@@ -395,6 +416,7 @@ $(document).ready(function() {
 			msg.action = action;
 			$('#prompt').val('');
 			
+			isAutomatic = false;
 			socket.send(JSON.stringify(msg));
 			display(msg);
 		}
@@ -419,6 +441,7 @@ var isFinWaited = false;
 var isFinished = false;
 var isJoined = false;
 var isDisabled = false;
+var isAutomatic = false;
 var isStat = false;
 var hasLeft = false;
 
