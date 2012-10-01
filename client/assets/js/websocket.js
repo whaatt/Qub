@@ -151,7 +151,7 @@ function handle(response) {
 				response.data += '<br>';
 			}
 			
-			log(response.data, 'yellow', false);
+			log(response.data, '#FFA121', false);
 			break;
 		case 'achat':
 			var prev = $('#log').html();
@@ -356,7 +356,7 @@ $(document).ready(function() {
 	
 	//Submit Command, Parsed
 	$('#command').submit(function() {
-		var typed = $('#prompt').val();
+		var typed = $.trim($('#prompt').val());
 		if (typed.replace(/\s/g, '') != ''){
 			var msg = new Object();
 			
