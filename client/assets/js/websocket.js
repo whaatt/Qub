@@ -81,38 +81,38 @@ function initialize() {
 function display(message) {
 	switch(message.action){
 		case 'nick':
-			log('Nickname change request sent.<br>', '#949700', true);
+			log('Nickname change request sent.<br>', '#4F8E00', true);
 			break;
 		case 'chat':
 			break;
 		case 'pm':
 			break;
 		case 'game':
-			log('New game request sent.<br>', '#949700', true);
+			log('New game request sent.<br>', '#4F8E00', true);
 			break;
 		case 'join':
-			log('Game join request sent.<br>', '#949700', true);
+			log('Game join request sent.<br>', '#4F8E00', true);
 			break;	
 		case 'leave':
-			log('Leave request sent.<br>', '#949700', true);
+			log('Leave request sent.<br>', '#4F8E00', true);
 			break;
 		case 'start':
-			log('Start request sent.<br>', '#949700', true);
+			log('Start request sent.<br>', '#4F8E00', true);
 			break;
 		case 'ping':
-			log('Ping request sent.<br>', '#949700', true);
+			log('Ping request sent.<br>', '#4F8E00', true);
 			break;
 		case 'help':
-			log('Help request sent.<br>', '#949700', true);
+			log('Help request sent.<br>', '#4F8E00', true);
 			break;
 		case 'status':
-			log('Status request sent.<br>', '#949700', true);
+			log('Status request sent.<br>', '#4F8E00', true);
 			break;
 		case 'headers':
-			log('Header request sent.<br>', '#949700', true);
+			log('Header request sent.<br>', '#4F8E00', true);
 			break;
 		case 'list':
-			log('List request sent.<br>', '#949700', true);
+			log('List request sent.<br>', '#4F8E00', true);
 			break;
 		case 'continue':
 			break;
@@ -126,8 +126,8 @@ function display(message) {
 			break;
 		default:
 			var data = clean(message.data)
-			if (data != '') { log('Command: ' + clean(message.action) + ' ' + data.join(' ') + '<br>', '#949700', true); }
-			else { log('Command: ' + clean(message.action) + '<br>', '#949700', true); }
+			if (data != '') { log('Command: ' + clean(message.action) + ' ' + data.join(' ') + '<br>', '#4F8E00', true); }
+			else { log('Command: ' + clean(message.action) + '<br>', '#4F8E00', true); }
 			break;
 	}
 }
@@ -311,15 +311,15 @@ function handle(response) {
 				log(response.data, '#006CDE', false);
 				var nextText = 'Type <i>next</i> to continue to the next question.<br>Only one user needs to do this; please be considerate.<br>';
 				nextText = nextText + 'You are guaranteed two minutes of wait time.';
-				log(nextText, '#949700', false);
+				log(nextText, '#4F8E00', false);
 			}
 			break;
 		case 'finWait':
 			if (!isFinWaited){
 				isFinWaited = true;
 				isDisabled = true;
-				log(response.data, '#949700', false);
-				log('Input temporarily disabling.', '#949700', false);
+				log(response.data, '#4F8E00', false);
+				log('Input temporarily disabling.', '#4F8E00', false);
 				$('#prompt').attr('disabled', true);
 				cont = function() { $('#prompt').val('continue'); $('#command').submit(); }
 				$.doTimeout(5000, cont);
