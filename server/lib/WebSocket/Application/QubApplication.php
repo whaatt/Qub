@@ -1070,7 +1070,15 @@ class QubApplication extends Application
 		$correct = urlencode($this->_games[$gameNumber]['state']['answer']);
 		
 		$URI = 'http://www.quizbowldb.com/api/answer.check?canon=' . $correct . '&answer=' . $answer;
-		$isRight = json_decode(file_get_contents($URI))->value; #Check Answer Validity
+		@$answerURI = file_get_contents($URI);
+			
+		if ($answerURI === False){
+			$isRight = False;
+		}
+		
+		else{
+			$isRight = json_decode($answerURI)->value; #Check Answer Validity
+		}
 		
 		//Echo Stats And Display For Correct Answers
 		if ($isRight)
