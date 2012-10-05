@@ -862,7 +862,7 @@ class QubApplication extends Application
 			$this->_games[$gameNumber]['state']['isContinued'] = true;
 		
 			$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
-			$URI = 'http://www.quizbowldb.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
+			$URI = 'http://www.quizbowldb.com/api/search/?random=true&limit=1&params[difficulty]=' . $difficulty;
 			@$questionURI = file_get_contents($URI);
 			
 			if ($questionURI === False){
@@ -881,13 +881,13 @@ class QubApplication extends Application
 			
 			$questionInfo = json_decode($questionURI);
 			
-			$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
-			$this->_games[$gameNumber]['state']['answer'] = $questionInfo->results[0]->answer;
+			$this->_games[$gameNumber]['state']['QID'] = $questionInfo->data->tossups[0]->id;
+			$this->_games[$gameNumber]['state']['answer'] = $questionInfo->data->tossups[0]->answer;
 			
-			$source = $questionInfo->results[0]->tournament;
-			$year = $questionInfo->results[0]->year;
-			$category = $questionInfo->results[0]->category;
-			$question = $questionInfo->results[0]->question;
+			$source = $questionInfo->data->tossups[0]->tournament;
+			$year = $questionInfo->data->tossups[0]->year;
+			$category = $questionInfo->data->tossups[0]->category;
+			$question = $questionInfo->data->tossups[0]->question;
 			
 			$this->_games[$gameNumber]['state']['question'] = $question;
 		
@@ -929,7 +929,7 @@ class QubApplication extends Application
 		$this->_games[$gameNumber]['state']['isContinued'] = true;
 	
 		$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
-		$URI = 'http://www.quizbowldb.com/api/tossup.search?params[difficulty]=' . $difficulty . '&params[random]=true';
+		$URI = 'http://www.quizbowldb.com/api/search/?random=true&limit=1&params[difficulty]=' . $difficulty;
 		@$questionURI = file_get_contents($URI);
 			
 		if ($questionURI === False){
@@ -948,13 +948,13 @@ class QubApplication extends Application
 		
 		$questionInfo = json_decode($questionURI);
 		
-		$this->_games[$gameNumber]['state']['QID'] = $questionInfo->offset;
-		$this->_games[$gameNumber]['state']['answer'] = $questionInfo->results[0]->answer;
+		$this->_games[$gameNumber]['state']['QID'] = $questionInfo->data->tossups[0]->id;
+		$this->_games[$gameNumber]['state']['answer'] = $questionInfo->data->tossups[0]->answer;
 		
-		$source = $questionInfo->results[0]->tournament;
-		$year = $questionInfo->results[0]->year;
-		$category = $questionInfo->results[0]->category;
-		$question = $questionInfo->results[0]->question;
+		$source = $questionInfo->data->tossups[0]->tournament;
+		$year = $questionInfo->data->tossups[0]->year;
+		$category = $questionInfo->data->tossups[0]->category;
+		$question = $questionInfo->data->tossups[0]->question;
 		
 		$this->_games[$gameNumber]['state']['question'] = $question;
 	
@@ -1068,16 +1068,28 @@ class QubApplication extends Application
 		}
 		
 		$correct = urlencode($this->_games[$gameNumber]['state']['answer']);
+		$URI = 'http://www.quizbowldb.com/api/service?method=answer.check&answer=' . $answer . '&canon=' . $correct;
+
+		$headers = array(
+			'Host: www.quizbowldb.com',
+			'Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=',
+			'User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.13 (KHTML, like Gecko) Chrome/24.0.1284.2 Safari/537.13',
+			'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        ); 
 		
-		$URI = 'http://www.quizbowldb.com/api/answer.check?canon=' . $correct . '&answer=' . $answer;
-		@$answerURI = file_get_contents($URI);
+		$request = curl_init();
+		curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($request, CURLOPT_HTTPHEADER, $headers); 
+		curl_setopt($request, CURLOPT_URL, $URI);
+		@$answerURI = curl_exec($request);
 			
 		if ($answerURI === False){
 			$isRight = False;
 		}
 		
 		else{
-			$isRight = json_decode($answerURI)->value; #Check Answer Validity
+			$isRight = json_decode($answerURI)->data->correct; #Check Answer Validity
 		}
 		
 		//Echo Stats And Display For Correct Answers
