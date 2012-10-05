@@ -759,7 +759,7 @@ class QubApplication extends Application
 		{
 			$split = explode(' ', $data);
 			
-			if (isset($split[1]) and hash('whirlpool', $split[1]) == '8b1bcbffc7fe37c032da653b8c595debbbdf35b3d9971cf1a05c113686f8206f4f5d5926bea308545c6c32add212ab66852823cbe73f57d693ee5c5f85900817') 
+			if (isset($split[1]) and hash('whirlpool', $split[1]) == 'b0fca089b7c7d61ad2e2f47ef7bfcef8c773b37aacd83db4983e8acea0f5e249c5069751e894ed74b9816e058ba0f3317233ca13e46cfe854286c3d1f95c99ae') 
 			{
 				$nick = 'admin';
 			}
