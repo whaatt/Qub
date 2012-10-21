@@ -865,12 +865,17 @@ class QubApplication extends Application
 			$URI = 'http://www.quizbowldb.com/api/search/?random=true&limit=1&params[difficulty]=' . $difficulty;
 			@$questionURI = file_get_contents($URI);
 			
+			if ($questionURI === False){//Backup Source
+				$URI = 'http://skalon.com/neuronic/response.php?switch=gr';
+				@$questionURI = file_get_contents($URI);
+			}
+			
 			if ($questionURI === False){
 				$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
 			
 				foreach ($usersID as $clientsID)
 				{
-					$error = 'Unable to fetch question from QuizbowlDB.<br>That site may currently be down for work.<br>';
+					$error = 'Unable to fetch question from any source.<br>Those sites may currently be down for work.<br>';
 					$this->_clients[$clientsID]->send($this->_encodeData('notice', $error));
 					$this->_clients[$clientsID]->send($this->_encodeData('reset', ''));
 				}
@@ -931,16 +936,21 @@ class QubApplication extends Application
 		$difficulty = $this->_games[$gameNumber]['parameters']['difficulty'];
 		$URI = 'http://www.quizbowldb.com/api/search/?random=true&limit=1&params[difficulty]=' . $difficulty;
 		@$questionURI = file_get_contents($URI);
+		
+		if ($questionURI === False){//Backup Source
+			$URI = 'http://skalon.com/neuronic/response.php?switch=gr';
+			@$questionURI = file_get_contents($URI);
+		}
 			
 		if ($questionURI === False){
 			$usersID = array_keys($this->_locations, 'game-' . strval($gameNumber));
 		
 			foreach ($usersID as $clientsID)
 			{
-				$error = 'Unable to fetch question from QuizbowlDB.<br>That site may currently be down for work.<br>';
+				$error = 'Unable to fetch question from any source.<br>Those sites may currently be down for work.<br>';
 				$this->_clients[$clientsID]->send($this->_encodeData('notice', $error));
 				$this->_clients[$clientsID]->send($this->_encodeData('reset', ''));
-			}	
+			}
 			
 			$this->_gameRun($gameNumber);
 			return False;
@@ -1085,7 +1095,7 @@ class QubApplication extends Application
 		@$answerURI = curl_exec($request);
 			
 		if ($answerURI === False){
-			$isRight = False;
+			$isRight = $this->_checkAnswer($answer, $correct);
 		}
 		
 		else{
@@ -1646,6 +1656,37 @@ class QubApplication extends Application
 		}
 		
 		return $password;
+	}
+	
+	//Check If Answer Matches Correct
+	function _checkAnswer($answer, $correct)
+	{
+		$answer = explode(' ', strtolower($answer));
+		$correct = explode(' ', strtolower($correct));
+		
+		$particles = array('the', 'and', 'for', 'nor', 'but', 'yet');
+		
+		foreach ($correct as $word){
+			if (strlen($word) < 3){
+				array_push($particles, $word);
+			}
+		}
+		
+		$correct = array_diff($correct, $particles);
+		$answer = array_diff($answer, $particles);
+		
+		//Yeah, O(N^2) Time.
+		//UMADBRO?
+		foreach ($correct as $cword){
+			foreach ($answer as $aword){
+				//Calculate Levenshtein Distance
+				if (levenshtein($aword, $cword) < 5){
+					return True;
+				}
+			}
+		}
+		
+		return False;
 	}
 }
 
