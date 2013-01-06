@@ -613,7 +613,7 @@ class QubApplication extends Application
 				$headers = $headers . '<br>There are currently ' . strval(count($this->_clients)) . ' users online.<br>';
 			}
 			
-			$headers = $headers . '<br>Questions snagged from (thanks to) QuizbowlDB.com.<br>';
+			$headers = $headers . '<br>Questions snagged from (thanks to) quizbowldb.com.<br>';
 		}
 		
 		else
@@ -1661,12 +1661,18 @@ class QubApplication extends Application
 	//Check If Answer Matches Correct
 	function _checkAnswer($answer, $correct)
 	{
-		$answer = explode(' ', strtolower($answer));
-		$correct = explode(' ', strtolower($correct));
+		$answer = explode(' ', strtolower(urldecode($answer)));
+		$correct = explode(' ', strtolower(urldecode($correct)));
 		
-		$particles = array('the', 'and', 'for', 'nor', 'but', 'yet');
+		$particles = array('the', 'and', 'for', 'nor', 'but', 'yet', 'prompt', 'accept');
 		
 		foreach ($correct as $word){
+			if (strlen($word) < 3){
+				array_push($particles, $word);
+			}
+		}
+		
+		foreach ($answer as $word){
 			if (strlen($word) < 3){
 				array_push($particles, $word);
 			}
@@ -1680,7 +1686,7 @@ class QubApplication extends Application
 		foreach ($correct as $cword){
 			foreach ($answer as $aword){
 				//Calculate Levenshtein Distance
-				if (levenshtein($aword, $cword) < 5){
+				if (levenshtein($aword, $cword) <= intval(round(.4*strlen($cword)))){
 					return True;
 				}
 			}
