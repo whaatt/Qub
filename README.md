@@ -1,6 +1,6 @@
 Qub
 =============
-An Implementation of Multiplayer Quiz Bowl.
+An Implementation of Multiplayer Quiz Bowl
 
 - Uses HTML/CSS/JS for the front-end stuff.
 - Uses PHP for the back-end.
